@@ -45,6 +45,66 @@ Then open [http://localhost:8000/dashboard/](http://localhost:8000/dashboard/).
 
 Repeat the sync step once per month to pull in the newest bill and update the dashboard data files.
 
+## Docker usage
+
+The repository also includes a container setup that serves the dashboard and runs the monthly `sync` command automatically inside the container.
+
+1. Copy the example environment file.
+2. Fill in your KSEB credentials.
+3. Build and start the container.
+4. Open the dashboard in your browser.
+
+```bash
+cp .env.example .env
+# Edit .env and set KSEB_CONSUMER_NUMBER / KSEB_REGISTERED_MOBILE
+
+docker compose up -d --build
+```
+
+Then open [http://localhost:8000/dashboard/](http://localhost:8000/dashboard/).
+
+Container behavior:
+
+- Runs `python3 -m http.server 8000` to serve the repository.
+- Runs `python3 scripts/script.py sync --pdf-dir kseb-bills --json dashboard/data/bills.json --csv dashboard/data/bills.csv` once on startup by default.
+- Schedules the same sync command monthly with cron using `KSEB_SYNC_CRON`.
+- Persists downloaded PDFs and generated exports through the compose bind mounts.
+
+Useful Docker commands:
+
+```bash
+docker compose logs -f
+docker compose exec kseb-dashboard /bin/sh
+```
+
+The default monthly schedule is:
+
+```text
+0 6 1 * *
+```
+
+That means the sync runs at 06:00 on the first day of each month. You can override it in `docker-compose.yml` with any standard cron expression.
+
+## Gitea Actions
+
+The repository includes two Gitea workflows under `.gitea/workflows/` for container automation:
+
+- `docker-build.yml` builds the image on pull requests, manual runs, and pushes to `main`.
+- `docker-publish.yml` builds and pushes the `latest` image on manual runs and pushes to `main`.
+
+Set these Gitea Actions secrets before using the publish workflow:
+
+- `DOCKER_REGISTRY_URL`: registry host like `192.168.18.41:3001`
+- `DOCKER_REGISTRY_USERNAME`: registry username
+- `DOCKER_REGISTRY_PASSWORD`: registry password or access token
+- `DOCKER_IMAGE_NAME`: image path like `roadeo/kseb-bill-stats`
+
+The deploy workflow builds `${DOCKER_IMAGE_NAME}:latest`, logs into `${DOCKER_REGISTRY_URL}`, then pushes `${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:latest`.
+
+Published tags:
+
+- `latest` for pushes to `main`
+
 ## Safety behavior
 
 - `parse` and `sync` now fail closed: if the PDF folder is missing, empty, or any bill fails validation, the dashboard exports are not overwritten.

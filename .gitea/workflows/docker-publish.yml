@@ -1,0 +1,34 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build -t "${{ secrets.DOCKER_IMAGE_NAME }}:latest" .
+
+      - name: Log in to registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "${{ secrets.DOCKER_REGISTRY_PASSWORD }}" | docker login "${{ secrets.DOCKER_REGISTRY_URL }}" --username "${{ secrets.DOCKER_REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Push image
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker tag "${{ secrets.DOCKER_IMAGE_NAME }}:latest" "${{ secrets.DOCKER_REGISTRY_URL }}/${{ secrets.DOCKER_IMAGE_NAME }}:latest"
+          docker push "${{ secrets.DOCKER_REGISTRY_URL }}/${{ secrets.DOCKER_IMAGE_NAME }}:latest"

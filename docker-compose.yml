@@ -1,0 +1,19 @@
+services:
+  kseb-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kseb-bill-stats
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      KSEB_CONSUMER_NUMBER: "${KSEB_CONSUMER_NUMBER:-}"
+      KSEB_REGISTERED_MOBILE: "${KSEB_REGISTERED_MOBILE:-}"
+      KSEB_SYNC_CRON: "${KSEB_SYNC_CRON:-0 6 1 * *}"
+      KSEB_RUN_SYNC_ON_STARTUP: "${KSEB_RUN_SYNC_ON_STARTUP:-true}"
+      TZ: "${TZ:-Asia/Kolkata}"
+    volumes:
+      - ./kseb-bills:/app/kseb-bills
+      - ./dashboard/data:/app/dashboard/data
+      - ./exports:/app/exports
