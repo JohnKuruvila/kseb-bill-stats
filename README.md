@@ -6,6 +6,8 @@ A static dashboard for analyzing KSEB solar bills, backed by a local Python work
 
 This project is meant to be run once each month when a new KSEB bill becomes available. Each monthly run downloads the latest bill into your local `kseb-bills/` archive, then refreshes `dashboard/data/bills.json` and `dashboard/data/bills.csv` so the dashboard stays up to date over time.
 
+The dashboard interprets each bill as representing the previous month's usage. The exported data keeps the original `bill_date` from the PDF, but charts and ledger labels are shown by usage month so a bill dated in March is treated as February usage.
+
 ## Dashboard preview
 
 The current dashboard includes an overview plus dedicated energy, cost, and ledger tabs.
@@ -151,6 +153,7 @@ The dashboard reads only `dashboard/data/bills.json`. Each record is expected to
 
 - Required: `record_id`, `bill_date`, and `total_amount`
 - Expected date format: `DD-MM-YYYY`
+- `bill_date` is the actual bill date from KSEB; the dashboard displays the previous month as the usage month
 - Numeric fields should be numbers or `null`, not empty strings
 - Optional nullable fields include `due_date`, `solar_capacity_kw`, zone-level readings, and solar generation fields
 - Raw identifiers such as `consumer_number`, `bill_number`, and `meter_number` are intentionally excluded from the dashboard export

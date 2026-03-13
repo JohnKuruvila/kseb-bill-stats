@@ -163,6 +163,12 @@
         gap: 16px;
       }
 
+      .energy-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
       .tab-nav {
         display: flex;
         flex-wrap: wrap;
@@ -485,6 +491,10 @@
         .mini-stats {
           grid-template-columns: 1fr;
         }
+
+        .energy-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -497,8 +507,9 @@
           <h1 class="page-title">KSEB Solar Dashboard</h1>
           <div class="page-copy">
             Explore your KSEB bill history by switching between a quick overview,
-            energy behavior, cost breakdowns, and the full monthly ledger. The underlying data
-            is generated locally from your downloaded bill archive.
+            energy behavior, cost breakdowns, and the full monthly ledger. The dashboard treats
+            each bill as the usage for the previous month, while the underlying data keeps the
+            original bill date from your downloaded archive.
           </div>
         </div>
         <div class="badge soft page-badge">Monthly bill archive</div>
@@ -602,7 +613,7 @@
       </section>
 
       <section class="tab-panel" id="panel-energy" role="tabpanel" aria-labelledby="tab-energy" data-panel="energy" hidden>
-        <section class="main-grid">
+        <section class="energy-grid">
           <article class="card">
             <div class="section-head">
               <div>
@@ -615,7 +626,7 @@
             <div id="flowChart" class="chart compact-chart energy-chart"></div>
           </article>
 
-          <article class="card span-2">
+          <article class="card">
             <div class="section-head">
               <div>
                 <div class="section-title">Performance view</div>
@@ -636,7 +647,7 @@
               <div>
                 <div class="section-title">Charge composition</div>
                 <div class="section-copy">
-                  Fixed charges, energy charges, taxes, meter rent, and any balancing adjustment each month.
+                  Fixed charges, energy charges, taxes, meter rent, and any balancing adjustment for each usage month.
                 </div>
               </div>
             </div>
@@ -648,7 +659,7 @@
               <div>
                 <div class="section-title">Cost reading guide</div>
                 <div class="section-copy">
-                  Use this tab to compare the bill total against its fixed and variable components. The trend tab in Overview shows how those charges move against demand.
+                  Use this tab to compare the bill total against its fixed and variable components. The trend tab in Overview shows how those charges move against demand for each usage month.
                 </div>
               </div>
             </div>
@@ -672,7 +683,7 @@
             <div>
               <div class="section-title">Monthly ledger</div>
               <div class="section-copy">
-                Every figure below is generated from the parsed bill archive. The export reading is treated as solar sent to the grid, while solar generation comes from the bill&apos;s Solar Generation section.
+                Every figure below is generated from the parsed bill archive. Each row is labeled by the previous month&apos;s usage, while the source data keeps the bill&apos;s actual bill date. The export reading is treated as solar sent to the grid, while solar generation comes from the bill&apos;s Solar Generation section.
               </div>
             </div>
             <div class="badge" id="ledgerBadge">Rendering cleaned history</div>
@@ -682,7 +693,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Month</th>
+                  <th>Usage month</th>
                   <th>Bill</th>
                   <th>KSEB import</th>
                   <th>Solar to grid</th>
@@ -814,6 +825,18 @@
           month: "short",
           year: "numeric",
         }).format(date);
+      }
+
+      function formatUsageMonth(value) {
+        const date = parseDate(value);
+        if (!date) {
+          return "Unknown month";
+        }
+
+        return new Intl.DateTimeFormat("en-IN", {
+          month: "short",
+          year: "numeric",
+        }).format(new Date(date.getFullYear(), date.getMonth() - 1, 1));
       }
 
       function formatINR(value, digits = 0) {
@@ -983,7 +1006,8 @@
 
         return {
           ...raw,
-          label: formatMonth(raw.bill_date),
+          label: formatUsageMonth(raw.bill_date),
+          billLabel: formatMonth(raw.bill_date),
           unitsImported,
           unitsExported,
           netGrid,
@@ -1788,13 +1812,13 @@
           : "Tracking month-on-month movement";
 
         document.getElementById("ledgerBadge").textContent =
-          `${bills.length} months ready for review`;
+          `${bills.length} usage months ready for review`;
 
         renderInsights(buildInsights(summary));
 
         const footerNote = document.getElementById("footerNote");
         footerNote.textContent =
-          "All figures are calculated locally from bills.json. KSEB import is energy drawn from the grid, solar to grid comes from the bill's export reading, and demand met by solar = self-consumed solar / total home demand.";
+          "All figures are calculated locally from bills.json. Labels show the previous month's usage, while bill_date remains the original bill date. KSEB import is energy drawn from the grid, solar to grid comes from the bill's export reading, and demand met by solar = self-consumed solar / total home demand.";
 
         renderLedger(bills);
 
