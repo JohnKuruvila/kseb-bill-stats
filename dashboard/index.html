@@ -1,0 +1,2223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Analyze KSEB electricity bills in Kerala with monthly KSEB bill stats, electricity cost per unit (kWh), and solar bill insights."
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#07111f" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <title>KSEB Bills & Kerala Electricity Cost | Solar Bill Stats</title>
+    <meta property="og:title" content="KSEB Bills & Kerala Electricity Cost | Solar Bill Stats" />
+    <meta
+      property="og:description"
+      content="Monthly KSEB bill stats, cost breakdowns, and solar savings for Kerala electricity bills."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is the KSEB electricity cost per unit (kWh)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "It is calculated from your monthly bill totals divided by your measured home demand (kWh) from KSEB bills and solar readings."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which charges make up a KSEB electricity bill in Kerala?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The dashboard breaks bills into fixed charges, energy (variable) charges, electricity duty, and meter rent, plus any remaining adjustments."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do solar export and self-consumption affect my KSEB bills?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Solar generation is split into self-used solar and solar sent to the grid, and the charts show how each part changes your KSEB import units and total spend."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why do the charts treat each bill as the previous month's usage?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Billing records often correspond to the prior month's usage. This dashboard keeps the original bill date while normalizing the figures to usage month so trends are comparable."
+            }
+          }
+        ]
+      }
+    </script>
+
+    <style>
+      :root {
+        --bg: #07111f;
+        --panel: rgba(8, 22, 39, 0.8);
+        --panel-strong: rgba(10, 28, 49, 0.92);
+        --panel-soft: rgba(255, 255, 255, 0.04);
+        --border: rgba(148, 163, 184, 0.16);
+        --text: #eef5ff;
+        --muted: #9db0ca;
+        --faint: #6f83a2;
+        --cyan: #34d7ff;
+        --blue: #4f8cff;
+        --green: #55d69e;
+        --amber: #ffbf5f;
+        --rose: #ff7d89;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        --radius: 24px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(52, 215, 255, 0.16), transparent 28%),
+          radial-gradient(circle at 85% 18%, rgba(85, 214, 158, 0.12), transparent 24%),
+          radial-gradient(circle at 50% 100%, rgba(79, 140, 255, 0.12), transparent 32%),
+          linear-gradient(180deg, #07111f 0%, #081628 100%);
+      }
+
+      .backdrop {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+        background-size: 90px 90px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 90%);
+      }
+
+      .app {
+        position: relative;
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 36px 24px 40px;
+      }
+
+      .page-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .page-title {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 3.4rem);
+        letter-spacing: -0.05em;
+      }
+
+      .page-copy {
+        max-width: 760px;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .page-badge {
+        white-space: nowrap;
+      }
+
+      .card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(10, 28, 49, 0.94), rgba(8, 22, 39, 0.88));
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 34%);
+        pointer-events: none;
+      }
+
+      h2,
+      h3 {
+        margin: 0;
+        font-family: "Manrope", system-ui, sans-serif;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .metric-card {
+        padding: 18px 18px 16px;
+      }
+
+      .metric-label {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .metric-value {
+        margin-top: 10px;
+        font-family: "Manrope", system-ui, sans-serif;
+        font-size: clamp(1.5rem, 2vw, 2.2rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .metric-meta {
+        margin-top: 8px;
+        color: var(--faint);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .main-grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1.6fr 1fr;
+        gap: 16px;
+      }
+
+      .energy-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .tab-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .status-banner {
+        margin-bottom: 20px;
+        padding: 14px 16px;
+        border: 1px solid rgba(79, 140, 255, 0.2);
+        border-radius: 18px;
+        background: rgba(79, 140, 255, 0.08);
+        color: #dbe7ff;
+        line-height: 1.6;
+      }
+
+      .status-banner.is-error {
+        border-color: rgba(255, 125, 137, 0.28);
+        background: rgba(255, 125, 137, 0.1);
+        color: #ffd6db;
+      }
+
+      .status-banner.is-warning {
+        border-color: rgba(255, 191, 95, 0.28);
+        background: rgba(255, 191, 95, 0.1);
+        color: #ffe2af;
+      }
+
+      .loading-state {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 16px 18px;
+        border: 1px solid rgba(79, 140, 255, 0.24);
+        border-radius: 20px;
+        background: rgba(10, 28, 49, 0.9);
+        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.2);
+      }
+
+      .loading-state[hidden] {
+        display: none;
+      }
+
+      .loading-copy {
+        display: grid;
+        gap: 4px;
+      }
+
+      .loading-copy strong {
+        font-size: 0.98rem;
+      }
+
+      .loading-copy span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .loading-bar {
+        position: relative;
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .loading-bar-indicator {
+        position: absolute;
+        inset: 0 auto 0 -35%;
+        width: 35%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, rgba(79, 140, 255, 0), rgba(79, 140, 255, 0.95), rgba(52, 215, 255, 0.9));
+        animation: loading-slide 1.2s ease-in-out infinite;
+      }
+
+      .tab-button {
+        appearance: none;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 999px;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--muted);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition:
+          background 160ms ease,
+          border-color 160ms ease,
+          color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .tab-button:hover {
+        color: var(--text);
+        border-color: rgba(79, 140, 255, 0.28);
+        transform: translateY(-1px);
+      }
+
+      .tab-button.is-active {
+        background: rgba(79, 140, 255, 0.16);
+        color: #dbe7ff;
+        border-color: rgba(79, 140, 255, 0.34);
+      }
+
+      .tab-panel {
+        display: grid;
+        gap: 16px;
+      }
+
+      .tab-panel[hidden] {
+        display: none;
+      }
+
+      .span-2 {
+        grid-column: span 2;
+      }
+
+      /* Costs tab only has one card; make it span full grid width. */
+      #panel-costs .span-2 {
+        grid-column: 1 / -1;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .section-copy {
+        margin-top: 6px;
+        color: var(--faint);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .chart {
+        height: 340px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      }
+
+      .compact-chart {
+        height: 300px;
+      }
+
+      .energy-chart {
+        height: 340px;
+      }
+
+      .insights-card {
+        display: none;
+      }
+
+      .insight-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .insight-item {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      .insight-kicker {
+        margin-bottom: 6px;
+        color: var(--cyan);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .insight-text {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .table-card {
+        margin-top: 16px;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        background: rgba(2, 10, 19, 0.34);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 920px;
+      }
+
+      thead th {
+        position: sticky;
+        top: 0;
+        background: rgba(12, 28, 49, 0.94);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      th,
+      td {
+        padding: 13px 14px;
+        text-align: left;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+      }
+
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.035);
+      }
+
+      td {
+        color: #d9e6fa;
+        font-size: 13px;
+      }
+
+      .table-note {
+        color: var(--faint);
+        font-size: 12px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: rgba(85, 214, 158, 0.12);
+        color: #9cf0c5;
+        font-size: 12px;
+        border: 1px solid rgba(85, 214, 158, 0.18);
+      }
+
+      .badge.soft {
+        background: rgba(79, 140, 255, 0.12);
+        color: #b1c8ff;
+        border-color: rgba(79, 140, 255, 0.18);
+      }
+
+      .footer {
+        margin-top: 16px;
+        color: var(--faint);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .error-state {
+        margin-top: 12px;
+        color: #ffd6db;
+        font-size: 14px;
+      }
+
+      .chart-empty {
+        display: grid;
+        place-items: center;
+        min-height: 280px;
+        padding: 20px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .mini-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .mini-stat {
+        padding: 14px 16px;
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .mini-stat-label {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .mini-stat-value {
+        margin-top: 8px;
+        font-family: "Manrope", system-ui, sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+
+      .mini-stat-meta {
+        margin-top: 6px;
+        color: var(--faint);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      @keyframes loading-slide {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(390%);
+        }
+      }
+
+      @media (max-width: 1280px) {
+        .page-hero {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .kpi-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .main-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .span-2 {
+          grid-column: span 2;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .app {
+          padding: 18px 14px 28px;
+        }
+
+        .page-copy {
+          font-size: 14px;
+        }
+
+        .card {
+          border-radius: 20px;
+        }
+
+        .kpi-grid,
+        .main-grid,
+        .span-2 {
+          grid-template-columns: 1fr;
+          grid-column: auto;
+        }
+
+        .chart,
+        .compact-chart {
+          height: 300px;
+        }
+
+        .mini-stats {
+          grid-template-columns: 1fr;
+        }
+
+        .energy-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="backdrop"></div>
+
+    <main class="app">
+      <section class="page-hero">
+        <div>
+          <h1 class="page-title">KSEB Bills & Kerala Electricity Cost</h1>
+          <div class="page-copy">
+            Explore KSEB electricity bills for Kerala with monthly bill stats, cost breakdowns, and
+            solar bill insights. The dashboard treats each billing record as the usage for the
+            previous month, while keeping the original bill date from your archive.
+          </div>
+        </div>
+        <div class="badge soft page-badge">Monthly bill archive</div>
+      </section>
+
+      <section
+        class="card"
+        style="margin-bottom: 24px"
+        aria-label="KSEB bills and Kerala electricity cost FAQ"
+      >
+        <div class="section-title">KSEB bills & Kerala electricity cost FAQ</div>
+        <div class="section-copy" style="margin-top: 10px; max-width: 920px">
+          This public dashboard analyzes your KSEB electricity bills by month. It shows KSEB import
+          vs solar, total spend, and cost breakdowns including fixed charges, energy charges,
+          electricity duty, and meter rent. Use the ledger to review every parsed usage month.
+        </div>
+        <div style="display: grid; gap: 14px; margin-top: 18px">
+          <div>
+            <h3>What is the KSEB electricity cost per unit (kWh)?</h3>
+            <p style="margin: 6px 0 0 0; color: var(--faint); font-size: 13px; line-height: 1.6">
+              It is calculated from your monthly bill totals divided by your measured home demand
+              (kWh) from KSEB bills and solar readings.
+            </p>
+          </div>
+          <div>
+            <h3>Which charges make up a KSEB electricity bill in Kerala?</h3>
+            <p style="margin: 6px 0 0 0; color: var(--faint); font-size: 13px; line-height: 1.6">
+              Bills are broken down into fixed charges, energy (variable) charges, electricity duty,
+              and meter rent, plus any remaining adjustments.
+            </p>
+          </div>
+          <div>
+            <h3>How do solar export and self-consumption affect my KSEB bills?</h3>
+            <p style="margin: 6px 0 0 0; color: var(--faint); font-size: 13px; line-height: 1.6">
+              Solar generation is split into self-used solar and solar sent to the grid, and the
+              charts show how each part changes your KSEB import units and total spend.
+            </p>
+          </div>
+          <div>
+            <h3>Why do the charts treat each bill as the previous month's usage?</h3>
+            <p style="margin: 6px 0 0 0; color: var(--faint); font-size: 13px; line-height: 1.6">
+              Billing records often correspond to the prior month's usage. This dashboard keeps the
+              original bill date while normalizing the figures to usage month so trends are comparable.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <div id="statusBanner" class="status-banner" hidden aria-live="polite"></div>
+      <div id="loadingState" class="loading-state" hidden aria-live="polite">
+        <div class="loading-copy">
+          <strong id="loadingTitle">Loading your bill archive</strong>
+          <span id="loadingDetail">Fetching and preparing local bill data for the dashboard.</span>
+        </div>
+        <div class="loading-bar" aria-hidden="true">
+          <span class="loading-bar-indicator"></span>
+        </div>
+      </div>
+
+      <nav class="tab-nav" aria-label="Dashboard sections" role="tablist">
+        <button class="tab-button is-active" id="tab-overview" type="button" role="tab" aria-controls="panel-overview" aria-selected="true" tabindex="0" data-tab="overview">Overview</button>
+        <button class="tab-button" id="tab-energy" type="button" role="tab" aria-controls="panel-energy" aria-selected="false" tabindex="-1" data-tab="energy">Energy</button>
+        <button class="tab-button" id="tab-costs" type="button" role="tab" aria-controls="panel-costs" aria-selected="false" tabindex="-1" data-tab="costs">Costs</button>
+        <button class="tab-button" id="tab-ledger" type="button" role="tab" aria-controls="panel-ledger" aria-selected="false" tabindex="-1" data-tab="ledger">Ledger</button>
+      </nav>
+
+      <section class="tab-panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-panel="overview">
+        <section class="kpi-grid">
+          <article class="card metric-card">
+            <div class="metric-label">Total spend</div>
+            <div class="metric-value" id="totalSpend">-</div>
+            <div class="metric-meta" id="totalSpendMeta">Across the cleaned bill history.</div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-label">Average bill</div>
+            <div class="metric-value" id="avgBill">-</div>
+            <div class="metric-meta" id="avgBillMeta">Monthly bill average across the available history.</div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-label">Total home demand</div>
+            <div class="metric-value" id="totalDemand">-</div>
+            <div class="metric-meta" id="totalDemandMeta">KSEB import plus self-consumed solar.</div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-label">Demand met by solar</div>
+            <div class="metric-value" id="solarCoverage">-</div>
+            <div class="metric-meta" id="solarCoverageMeta">Share of home demand met directly by self-used solar.</div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-label">KSEB import</div>
+            <div class="metric-value" id="gridImport">-</div>
+            <div class="metric-meta" id="gridImportMeta">Total energy drawn from the KSEB grid.</div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-label">Solar self-used</div>
+            <div class="metric-value" id="solarSelfUse">-</div>
+            <div class="metric-meta" id="solarSelfUseMeta">Measured generation that stayed on site.</div>
+          </article>
+
+          <article class="card metric-card">
+            <div class="metric-label">Total solar generated</div>
+            <div class="metric-value" id="solarGenerated">-</div>
+            <div class="metric-meta" id="solarGeneratedMeta">Measured solar generation across the loaded history.</div>
+          </article>
+        </section>
+
+        <section class="main-grid">
+          <article class="card span-2">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Bill and demand trend</div>
+                <div class="section-copy">
+                  Bill amount is plotted against measured home demand, net KSEB-billed units, solar generation, and self-used solar to separate cost from actual usage and solar performance.
+                </div>
+              </div>
+              <div class="badge soft" id="trendBadge">Tracking month-on-month movement</div>
+            </div>
+            <div id="trendChart" class="chart"></div>
+            <div class="mini-stats" aria-label="Solar overview summary">
+              <div class="mini-stat">
+                <div class="mini-stat-label">Peak solar month</div>
+                <div class="mini-stat-value" id="overviewSolarPeakValue">-</div>
+                <div class="mini-stat-meta" id="overviewSolarPeakMeta">Highest measured solar generation month.</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-label">Self-use ratio</div>
+                <div class="mini-stat-value" id="overviewSolarUseValue">-</div>
+                <div class="mini-stat-meta" id="overviewSolarUseMeta">Share of measured solar generation used on site.</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-label">Latest solar month</div>
+                <div class="mini-stat-value" id="overviewSolarLatestValue">-</div>
+                <div class="mini-stat-meta" id="overviewSolarLatestMeta">Most recent measured generation and self-use.</div>
+              </div>
+            </div>
+          </article>
+
+          <aside class="card insights-card">
+            <div>
+              <div class="section-title">Highlights</div>
+              <div class="section-copy">
+                Derived from cleaned meter totals, charge components, and measured solar generation.
+              </div>
+            </div>
+            <div id="insightList" class="insight-list"></div>
+          </aside>
+        </section>
+
+        <section class="energy-grid" style="margin-top: 16px;">
+          <article class="card">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Energy mix: grid import vs solar</div>
+                <div class="section-copy">
+                  Stacked view of home energy from KSEB grid (imported) and solar production over time. Shows how much demand was met by each source each month.
+                </div>
+              </div>
+            </div>
+            <div id="importVsSolarChart" class="chart compact-chart energy-chart"></div>
+          </article>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="panel-energy" role="tabpanel" aria-labelledby="tab-energy" data-panel="energy" hidden>
+        <section class="energy-grid">
+          <article class="card">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Home demand and solar flow</div>
+                <div class="section-copy">
+                  Home demand is split into KSEB import and self-used solar, with solar generation and solar sent to the grid shown separately.
+                </div>
+              </div>
+            </div>
+            <div id="flowChart" class="chart compact-chart energy-chart"></div>
+          </article>
+
+          <article class="card">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Performance view</div>
+                <div class="section-copy">
+                  Demand met by solar and effective cost per household unit show whether the system is reducing dependence on KSEB supply.
+                </div>
+              </div>
+            </div>
+            <div id="performanceChart" class="chart compact-chart"></div>
+          </article>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="panel-costs" role="tabpanel" aria-labelledby="tab-costs" data-panel="costs" hidden>
+        <section class="main-grid">
+          <article class="card span-2">
+            <div class="section-head">
+              <div>
+                <div class="section-title">Charge composition</div>
+                <div class="section-copy">
+                  Fixed charges, energy charges, taxes, meter rent, and any balancing adjustment for each usage month.
+                </div>
+              </div>
+            </div>
+            <div id="chargeChart" class="chart compact-chart"></div>
+            <div class="mini-stats" aria-label="Cost insights summary">
+              <div class="mini-stat">
+                <div class="mini-stat-label">Cheapest month</div>
+                <div class="mini-stat-value" id="costsCheapestValue">-</div>
+                <div class="mini-stat-meta" id="costsCheapestMeta">Lowest bill in the period.</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-label">Energy share</div>
+                <div class="mini-stat-value" id="costsEnergyShareValue">-</div>
+                <div class="mini-stat-meta" id="costsEnergyShareMeta">Share of total spend that was energy (variable) charge.</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-label">Cost per unit</div>
+                <div class="mini-stat-value" id="costsCostPerUnitValue">-</div>
+                <div class="mini-stat-meta" id="costsCostPerUnitMeta">Range of cost per home kWh across months.</div>
+              </div>
+            </div>
+          </article>
+
+          
+        </section>
+      </section>
+
+      <section class="tab-panel" id="panel-ledger" role="tabpanel" aria-labelledby="tab-ledger" data-panel="ledger" hidden>
+        <section class="card table-card">
+          <div class="section-head">
+            <div>
+              <div class="section-title">Monthly ledger</div>
+              <div class="section-copy">
+                Every figure below is generated from the parsed bill archive. Each row is labeled by the previous month&apos;s usage, while the source data keeps the bill&apos;s actual bill date. The export reading is treated as solar sent to the grid, while solar generation comes from the bill&apos;s Solar Generation section.
+              </div>
+            </div>
+            <div class="badge" id="ledgerBadge">Rendering cleaned history</div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usage month</th>
+                  <th>Bill</th>
+                  <th>KSEB import</th>
+                  <th>Solar to grid</th>
+                  <th>Solar generated</th>
+                  <th>Solar self-used</th>
+                  <th>Home demand</th>
+                  <th>Net billed units</th>
+                  <th>Demand met by solar</th>
+                  <th>Cost / home unit</th>
+                </tr>
+              </thead>
+              <tbody id="ledgerBody"></tbody>
+            </table>
+          </div>
+
+          <div class="footer" id="footerNote">
+            All metrics are calculated locally from `bills.json`.
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const NUMBER_FIELDS = [
+        "connected_load_watts",
+        "solar_capacity_kw",
+        "units_imported",
+        "units_exported",
+        "billed_consumption",
+        "normal_import",
+        "normal_export",
+        "offpeak_import",
+        "offpeak_export",
+        "peak_import",
+        "peak_export",
+        "fixed_charge",
+        "energy_charge",
+        "electricity_duty",
+        "meter_rent",
+        "total_amount",
+        "net_grid_consumption",
+        "estimated_daily_solar_kwh",
+        "solar_generation_normal",
+        "solar_generation_offpeak",
+        "solar_generation_peak",
+        "solar_generation_kwh",
+      ];
+
+      const chartInstances = new Map();
+      const DATA_FILE = "./data/bills.json";
+      const CHART_ELEMENT_IDS = ["trendChart", "importVsSolarChart", "flowChart", "performanceChart", "chargeChart"];
+      const loadingStateEl = document.getElementById("loadingState");
+      const loadingTitleEl = document.getElementById("loadingTitle");
+      const loadingDetailEl = document.getElementById("loadingDetail");
+      const TAB_CHART_BUILDERS = {
+        overview: [
+          ["trend", buildTrendChart],
+          ["importVsSolar", buildImportVsSolarChart],
+        ],
+        energy: [
+          ["flow", buildFlowChart],
+          ["performance", buildPerformanceChart],
+        ],
+        costs: [["charge", buildChargeChart]],
+        ledger: [],
+      };
+      let activeTabId = getInitialTabId();
+      let currentBills = [];
+      function getInitialTabId() {
+        const requestedTab = new URLSearchParams(window.location.search).get("tab");
+        return TAB_CHART_BUILDERS[requestedTab] ? requestedTab : "overview";
+      }
+
+
+      window.addEventListener("resize", () => {
+        chartInstances.forEach((chart) => chart.resize());
+      });
+
+      function asNumber(value) {
+        if (value === null || value === undefined || value === "") {
+          return null;
+        }
+
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+
+      function firstNumber(...values) {
+        for (const value of values) {
+          if (Number.isFinite(value)) {
+            return value;
+          }
+        }
+        return null;
+      }
+
+      function sum(values) {
+        return values.reduce((total, value) => total + value, 0);
+      }
+
+      function average(values) {
+        return values.length ? sum(values) / values.length : null;
+      }
+
+      function parseDate(value) {
+        if (typeof value !== "string") {
+          return null;
+        }
+
+        const [day, month, year] = value.split("-").map(Number);
+        if (![day, month, year].every(Number.isFinite)) {
+          return null;
+        }
+
+        const date = new Date(year, month - 1, day);
+        if (
+          Number.isNaN(date.getTime()) ||
+          date.getFullYear() !== year ||
+          date.getMonth() !== month - 1 ||
+          date.getDate() !== day
+        ) {
+          return null;
+        }
+
+        return date;
+      }
+
+      function formatMonth(value) {
+        const date = parseDate(value);
+        if (!date) {
+          return "Unknown month";
+        }
+
+        return new Intl.DateTimeFormat("en-IN", {
+          month: "short",
+          year: "numeric",
+        }).format(date);
+      }
+
+      function formatUsageMonth(value) {
+        const date = parseDate(value);
+        if (!date) {
+          return "Unknown month";
+        }
+
+        return new Intl.DateTimeFormat("en-IN", {
+          month: "short",
+          year: "numeric",
+        }).format(new Date(date.getFullYear(), date.getMonth() - 1, 1));
+      }
+
+      function formatINR(value, digits = 0) {
+        if (!Number.isFinite(value)) {
+          return "-";
+        }
+
+        return new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: digits,
+          minimumFractionDigits: digits,
+        }).format(value);
+      }
+
+      function formatUnits(value, digits = 0) {
+        if (!Number.isFinite(value)) {
+          return "-";
+        }
+
+        return `${new Intl.NumberFormat("en-IN", {
+          maximumFractionDigits: digits,
+          minimumFractionDigits: digits,
+        }).format(value)} kWh`;
+      }
+
+      function formatPercent(value, digits = 0) {
+        if (!Number.isFinite(value)) {
+          return "-";
+        }
+
+        return `${(value * 100).toFixed(digits)}%`;
+      }
+
+      function daysBetween(first, second) {
+        const firstDate = parseDate(first);
+        const secondDate = parseDate(second);
+        if (!firstDate || !secondDate) {
+          return null;
+        }
+        const millisecondsPerDay = 24 * 60 * 60 * 1000;
+        return Math.round((secondDate - firstDate) / millisecondsPerDay);
+      }
+
+      function normalizeBill(bill) {
+        const normalized = { ...bill };
+        for (const key of NUMBER_FIELDS) {
+          normalized[key] = asNumber(bill[key]);
+        }
+        return normalized;
+      }
+
+      function completenessScore(bill) {
+        const keys = [
+          "units_imported",
+          "units_exported",
+          "billed_consumption",
+          "net_grid_consumption",
+          "solar_generation_kwh",
+          "total_amount",
+          "fixed_charge",
+          "energy_charge",
+          "electricity_duty",
+          "meter_rent",
+        ];
+
+        return keys.reduce((score, key) => score + (Number.isFinite(bill[key]) ? 1 : 0), 0);
+      }
+
+      function getBillKey(bill) {
+        return (
+          bill.record_id ||
+          [
+            bill.bill_date,
+            bill.due_date,
+            bill.total_amount,
+            bill.units_imported,
+            bill.units_exported,
+            bill.solar_generation_kwh,
+          ]
+            .map((value) => (value === null || value === undefined ? "" : String(value)))
+            .join("|")
+        );
+      }
+
+      function normalizeBills(rows) {
+        const selected = new Map();
+
+        for (const raw of rows.map(normalizeBill)) {
+          const key = getBillKey(raw);
+          const existing = selected.get(key);
+
+          if (!existing) {
+            selected.set(key, raw);
+            continue;
+          }
+
+          if (completenessScore(raw) >= completenessScore(existing)) {
+            selected.set(key, raw);
+          }
+        }
+
+        return Array.from(selected.values()).sort((left, right) => {
+          const leftDate = parseDate(left.bill_date);
+          const rightDate = parseDate(right.bill_date);
+          if (leftDate && rightDate) {
+            return leftDate - rightDate;
+          }
+          if (leftDate) {
+            return -1;
+          }
+          if (rightDate) {
+            return 1;
+          }
+          return 0;
+        });
+      }
+
+      function deriveBill(raw, index, bills) {
+        const zoneImports = [raw.normal_import, raw.offpeak_import, raw.peak_import];
+        const zoneExports = [raw.normal_export, raw.offpeak_export, raw.peak_export];
+        const zoneImportTotal = zoneImports.every(Number.isFinite) ? sum(zoneImports) : null;
+        const zoneExportTotal = zoneExports.every(Number.isFinite) ? sum(zoneExports) : null;
+        const unitsImported = firstNumber(raw.units_imported, zoneImportTotal);
+        const unitsExported = firstNumber(raw.units_exported, zoneExportTotal);
+        const netGrid = firstNumber(
+          raw.net_grid_consumption,
+          Number.isFinite(unitsImported) && Number.isFinite(unitsExported)
+            ? unitsImported - unitsExported
+            : null,
+        );
+        const billedConsumption = firstNumber(raw.billed_consumption, netGrid);
+        const solarGeneration = firstNumber(raw.solar_generation_kwh);
+        const solarSelfUsed =
+          Number.isFinite(solarGeneration) && Number.isFinite(unitsExported)
+            ? Math.max(solarGeneration - unitsExported, 0)
+            : null;
+        const homeDemand =
+          Number.isFinite(unitsImported) && Number.isFinite(solarSelfUsed)
+            ? unitsImported + solarSelfUsed
+            : null;
+        const solarCoverage =
+          Number.isFinite(homeDemand) && homeDemand > 0
+            ? solarSelfUsed / homeDemand
+            : null;
+        const solarToGridShare =
+          Number.isFinite(solarGeneration) &&
+          solarGeneration > 0 &&
+          Number.isFinite(unitsExported)
+            ? unitsExported / solarGeneration
+            : null;
+        const billingDays = index > 0 ? daysBetween(bills[index - 1].bill_date, raw.bill_date) : null;
+        const avgDailyDemand =
+          Number.isFinite(homeDemand) && Number.isFinite(billingDays) && billingDays > 0
+            ? homeDemand / billingDays
+            : null;
+        const fixedCharge = raw.fixed_charge || 0;
+        const energyCharge = raw.energy_charge || 0;
+        const taxAndRent = (raw.electricity_duty || 0) + (raw.meter_rent || 0);
+        const otherCharges = Number.isFinite(raw.total_amount)
+          ? +(raw.total_amount - fixedCharge - energyCharge - taxAndRent).toFixed(2)
+          : 0;
+        const costPerHomeUnit =
+          Number.isFinite(homeDemand) && homeDemand > 0 && Number.isFinite(raw.total_amount)
+            ? raw.total_amount / homeDemand
+            : null;
+
+        return {
+          ...raw,
+          label: formatUsageMonth(raw.bill_date),
+          billLabel: formatMonth(raw.bill_date),
+          unitsImported,
+          unitsExported,
+          netGrid,
+          billedConsumption,
+          solarGeneration,
+          solarSelfUsed,
+          homeDemand,
+          solarCoverage,
+          solarToGridShare,
+          billingDays,
+          avgDailyDemand,
+          fixedCharge,
+          energyCharge,
+          taxAndRent,
+          otherCharges,
+          costPerHomeUnit,
+          recoveredFromZones:
+            (!Number.isFinite(raw.units_imported) && Number.isFinite(zoneImportTotal)) ||
+            (!Number.isFinite(raw.units_exported) && Number.isFinite(zoneExportTotal)) ||
+            (!Number.isFinite(raw.billed_consumption) && Number.isFinite(netGrid)),
+        };
+      }
+
+      function maxBy(items, selector) {
+        return items.reduce((best, item) => {
+          const value = selector(item);
+          if (!Number.isFinite(value)) {
+            return best;
+          }
+          if (!best || value > selector(best)) {
+            return item;
+          }
+          return best;
+        }, null);
+      }
+
+      function minBy(items, selector) {
+        return items.reduce((best, item) => {
+          const value = selector(item);
+          if (!Number.isFinite(value)) {
+            return best;
+          }
+          if (!best || value < selector(best)) {
+            return item;
+          }
+          return best;
+        }, null);
+      }
+
+      function setMetric(id, value, metaId, meta) {
+        document.getElementById(id).textContent = value;
+        document.getElementById(metaId).textContent = meta;
+      }
+
+      function describeBill(bill, formatter, fallback) {
+        return bill ? formatter(bill) : fallback;
+      }
+
+      function resetCharts() {
+        chartInstances.forEach((chart) => chart.dispose());
+        chartInstances.clear();
+      }
+
+      function ensureTabCharts(tabId) {
+        if (!window.echarts || !currentBills.length) {
+          return;
+        }
+
+        for (const [chartId, builder] of TAB_CHART_BUILDERS[tabId] || []) {
+          if (!chartInstances.has(chartId)) {
+            chartInstances.set(chartId, builder(currentBills));
+          }
+        }
+      }
+
+      function setActiveTab(tabId) {
+        activeTabId = tabId;
+
+        document.querySelectorAll("[data-tab]").forEach((button) => {
+          const isActive = button.dataset.tab === tabId;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-selected", String(isActive));
+          button.tabIndex = isActive ? 0 : -1;
+        });
+
+        document.querySelectorAll("[data-panel]").forEach((panel) => {
+          const isActive = panel.dataset.panel === tabId;
+          panel.hidden = !isActive;
+          panel.tabIndex = isActive ? 0 : -1;
+        });
+
+        ensureTabCharts(tabId);
+
+        requestAnimationFrame(() => {
+          for (const [chartId] of TAB_CHART_BUILDERS[tabId] || []) {
+            const chart = chartInstances.get(chartId);
+            if (chart) {
+              chart.resize();
+            }
+          }
+        });
+      }
+
+      function setupTabs() {
+        const tabs = Array.from(document.querySelectorAll("[data-tab]"));
+        tabs.forEach((button, index) => {
+          button.addEventListener("click", () => {
+            setActiveTab(button.dataset.tab);
+          });
+
+          button.addEventListener("keydown", (event) => {
+            let targetIndex = null;
+
+            if (event.key === "ArrowRight") {
+              targetIndex = (index + 1) % tabs.length;
+            } else if (event.key === "ArrowLeft") {
+              targetIndex = (index - 1 + tabs.length) % tabs.length;
+            } else if (event.key === "Home") {
+              targetIndex = 0;
+            } else if (event.key === "End") {
+              targetIndex = tabs.length - 1;
+            }
+
+            if (targetIndex === null) {
+              return;
+            }
+
+            event.preventDefault();
+            const targetTab = tabs[targetIndex];
+            setActiveTab(targetTab.dataset.tab);
+            targetTab.focus();
+          });
+        });
+      }
+
+      function setStatus(message, tone = "info") {
+        const banner = document.getElementById("statusBanner");
+        if (!banner) {
+          return;
+        }
+
+        banner.hidden = !message;
+        banner.textContent = message || "";
+        banner.className = "status-banner";
+        if (message && tone !== "info") {
+          banner.classList.add(`is-${tone}`);
+        }
+      }
+
+      function setLoadingState(
+        active,
+        title = "Loading your bill archive",
+        detail = "Fetching and preparing local bill data for the dashboard.",
+      ) {
+        if (!loadingStateEl) {
+          return;
+        }
+
+        loadingStateEl.hidden = !active;
+        loadingTitleEl.textContent = title;
+        loadingDetailEl.textContent = detail;
+      }
+
+      function renderChartFallback(message) {
+        CHART_ELEMENT_IDS.forEach((id) => {
+          const element = document.getElementById(id);
+          if (!element) {
+            return;
+          }
+          element.replaceChildren();
+          element.classList.add("chart-empty");
+          element.textContent = message;
+        });
+      }
+
+      function clearChartFallback() {
+        CHART_ELEMENT_IDS.forEach((id) => {
+          const element = document.getElementById(id);
+          if (!element) {
+            return;
+          }
+          element.classList.remove("chart-empty");
+          if (!element.childElementCount) {
+            element.textContent = "";
+          }
+        });
+      }
+
+      function renderInsights(insights) {
+        const container = document.getElementById("insightList");
+        container.replaceChildren(
+          ...insights.map((insight) => {
+            const item = document.createElement("div");
+            item.className = "insight-item";
+
+            const kicker = document.createElement("div");
+            kicker.className = "insight-kicker";
+            kicker.textContent = insight.kicker;
+
+            const text = document.createElement("div");
+            text.className = "insight-text";
+            text.textContent = insight.text;
+
+            item.append(kicker, text);
+            return item;
+          }),
+        );
+      }
+
+      function buildTrendChart(bills) {
+        const chart = echarts.init(document.getElementById("trendChart"));
+        chart.setOption({
+          backgroundColor: "transparent",
+          animationDuration: 700,
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(7, 17, 31, 0.96)",
+            borderColor: "rgba(255,255,255,0.1)",
+            textStyle: { color: "#eef5ff" },
+          },
+          legend: {
+            top: 0,
+            textStyle: { color: "#9db0ca" },
+          },
+          grid: { left: 14, right: 20, top: 48, bottom: 18, containLabel: true },
+          xAxis: {
+            type: "category",
+            data: bills.map((bill) => bill.label),
+            axisLine: { lineStyle: { color: "rgba(255,255,255,0.12)" } },
+            axisLabel: { color: "#9db0ca" },
+          },
+          yAxis: [
+            {
+              type: "value",
+              name: "INR",
+              axisLabel: { color: "#9db0ca" },
+              splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+            },
+            {
+              type: "value",
+              name: "kWh",
+              axisLabel: { color: "#9db0ca" },
+              splitLine: { show: false },
+            },
+          ],
+          series: [
+            {
+              name: "Bill amount",
+              type: "bar",
+              yAxisIndex: 0,
+              barWidth: 24,
+              itemStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "#4f8cff" },
+                  { offset: 1, color: "#2351c7" },
+                ]),
+                borderRadius: [10, 10, 0, 0],
+              },
+              data: bills.map((bill) => bill.total_amount),
+            },
+            {
+              name: "Home demand",
+              type: "line",
+              yAxisIndex: 1,
+              smooth: true,
+              symbolSize: 8,
+              itemStyle: { color: "#34d7ff" },
+              lineStyle: { width: 3, color: "#34d7ff" },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "rgba(52, 215, 255, 0.32)" },
+                  { offset: 1, color: "rgba(52, 215, 255, 0.02)" },
+                ]),
+              },
+              data: bills.map((bill) => bill.homeDemand),
+            },
+            {
+              name: "Solar generated",
+              type: "line",
+              yAxisIndex: 1,
+              smooth: true,
+              symbolSize: 7,
+              itemStyle: { color: "#55d69e" },
+              lineStyle: { width: 2.5, color: "#55d69e" },
+              data: bills.map((bill) => bill.solarGeneration),
+            },
+          ],
+        });
+        return chart;
+      }
+
+      function buildImportVsSolarChart(bills) {
+        const chart = echarts.init(document.getElementById("importVsSolarChart"));
+        const labels = bills.map((bill) => bill.label);
+        const imported = bills.map((bill) => bill.unitsImported ?? 0);
+        const solar = bills.map((bill) => bill.solarGeneration ?? 0);
+        const maxValue = Math.max(0, ...imported, ...solar);
+        const axisLimit = maxValue ? Math.ceil((maxValue * 1.15) / 50) * 50 : 100;
+
+        chart.setOption({
+          backgroundColor: "transparent",
+          animationDuration: 700,
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+              shadowStyle: { color: "rgba(255,255,255,0.04)" },
+            },
+            backgroundColor: "rgba(7, 17, 31, 0.96)",
+            borderColor: "rgba(255,255,255,0.1)",
+            textStyle: { color: "#eef5ff" },
+            formatter: (params) => {
+              const i = params[0]?.dataIndex ?? 0;
+              const bill = bills[i];
+              const total = (bill.unitsImported ?? 0) + (bill.solarGeneration ?? 0);
+              const importPct = total > 0 ? Math.round(((bill.unitsImported ?? 0) / total) * 100) : 0;
+              const solarPct = total > 0 ? Math.round(((bill.solarGeneration ?? 0) / total) * 100) : 0;
+              return [
+                `<div style="margin-bottom:8px;font-weight:600;">${bill.label}</div>`,
+                '<div style="display:grid;gap:6px;min-width:200px;">',
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#4f8cff;">KSEB import</span><strong>${formatUnits(bill.unitsImported)}</strong><span style="color:#9db0ca;">${importPct}%</span></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#ffbf5f;">Solar produced</span><strong>${formatUnits(bill.solarGeneration)}</strong><span style="color:#9db0ca;">${solarPct}%</span></div>`,
+                '<div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0;"></div>',
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#d7e4f8;">Total</span><strong>${formatUnits(total)}</strong></div>`,
+                "</div>",
+              ].join("");
+            },
+          },
+          legend: {
+            top: 0,
+            itemWidth: 12,
+            itemHeight: 12,
+            textStyle: { color: "#9db0ca" },
+          },
+          grid: { left: 14, right: 20, top: 48, bottom: 18, containLabel: true },
+          xAxis: {
+            type: "category",
+            boundaryGap: false,
+            data: labels,
+            axisTick: { show: false },
+            axisLabel: { color: "#9db0ca" },
+            axisLine: { lineStyle: { color: "rgba(255,255,255,0.12)" } },
+          },
+          yAxis: {
+            type: "value",
+            min: 0,
+            max: axisLimit,
+            axisLabel: {
+              color: "#9db0ca",
+              formatter: (value) =>
+                new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(value),
+            },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+          },
+          series: [
+            {
+              name: "KSEB import",
+              type: "line",
+              smooth: true,
+              symbolSize: 8,
+              itemStyle: { color: "#4f8cff" },
+              lineStyle: { width: 3, color: "#4f8cff" },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "rgba(79, 140, 255, 0.32)" },
+                  { offset: 1, color: "rgba(79, 140, 255, 0.02)" },
+                ]),
+              },
+              emphasis: { focus: "series" },
+              data: imported,
+            },
+            {
+              name: "Solar produced",
+              type: "line",
+              smooth: true,
+              symbolSize: 7,
+              itemStyle: { color: "#ffbf5f" },
+              lineStyle: { width: 2.5, color: "#ffbf5f" },
+              areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "rgba(255, 191, 95, 0.32)" },
+                  { offset: 1, color: "rgba(255, 191, 95, 0.02)" },
+                ]),
+              },
+              emphasis: { focus: "series" },
+              data: solar,
+            },
+          ],
+        });
+        return chart;
+      }
+
+      function buildFlowChart(bills) {
+        const chart = echarts.init(document.getElementById("flowChart"));
+        const maxValue = Math.max(
+          0,
+          ...bills.map((bill) => bill.homeDemand ?? 0),
+          ...bills.map((bill) => bill.solarGeneration ?? 0),
+          ...bills.map((bill) => bill.unitsExported ?? 0),
+        );
+        const axisLimit = maxValue ? Math.ceil((maxValue * 1.18) / 50) * 50 : 100;
+
+        chart.setOption({
+          backgroundColor: "transparent",
+          animationDuration: 700,
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+              shadowStyle: { color: "rgba(255,255,255,0.04)" },
+            },
+            backgroundColor: "rgba(7, 17, 31, 0.96)",
+            borderColor: "rgba(255,255,255,0.1)",
+            textStyle: { color: "#eef5ff" },
+            formatter: (params) => {
+              const bill = bills[params[0]?.dataIndex ?? 0];
+              const solarShare =
+                Number.isFinite(bill.homeDemand) &&
+                bill.homeDemand > 0 &&
+                Number.isFinite(bill.solarSelfUsed)
+                  ? `${Math.round((bill.solarSelfUsed / bill.homeDemand) * 100)}% of demand`
+                  : "-";
+              const importShare =
+                Number.isFinite(bill.homeDemand) &&
+                bill.homeDemand > 0 &&
+                Number.isFinite(bill.unitsImported)
+                  ? `${Math.round((bill.unitsImported / bill.homeDemand) * 100)}% of demand`
+                  : "-";
+              const solarToGridShare =
+                Number.isFinite(bill.solarGeneration) &&
+                bill.solarGeneration > 0 &&
+                Number.isFinite(bill.unitsExported)
+                  ? `${Math.round((bill.unitsExported / bill.solarGeneration) * 100)}% of solar`
+                  : "-";
+
+              return [
+                `<div style="margin-bottom:8px;font-weight:600;">${bill.label}</div>`,
+                '<div style="display:grid;gap:6px;min-width:220px;">',
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#ffd36f;">Solar generated</span><strong>${formatUnits(bill.solarGeneration)}</strong></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#8ef0bf;">Self-used solar</span><strong>${formatUnits(bill.solarSelfUsed)}</strong></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#8ef0bf;opacity:0.72;">Solar share</span><span>${solarShare}</span></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#8eb6ff;">KSEB import</span><strong>${formatUnits(bill.unitsImported)}</strong></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#8eb6ff;opacity:0.72;">KSEB share</span><span>${importShare}</span></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#ffb2ba;">Solar to grid</span><strong>${formatUnits(bill.unitsExported)}</strong></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#ffb2ba;opacity:0.72;">To-grid share</span><span>${solarToGridShare}</span></div>`,
+                '<div style="height:1px;background:rgba(255,255,255,0.08);margin:4px 0;"></div>',
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#d7e4f8;">Home demand</span><strong>${formatUnits(bill.homeDemand)}</strong></div>`,
+                `<div style="display:flex;justify-content:space-between;gap:18px;"><span style="color:#d7e4f8;">Net billed units</span><strong>${formatUnits(bill.netGrid)}</strong></div>`,
+                "</div>",
+              ].join("");
+            },
+          },
+          legend: {
+            top: 0,
+            itemWidth: 12,
+            itemHeight: 12,
+            textStyle: { color: "#9db0ca" },
+          },
+          grid: { left: 12, right: 20, top: 52, bottom: 18, containLabel: true },
+          xAxis: {
+            type: "category",
+            data: bills.map((bill) => bill.label),
+            axisTick: { show: false },
+            axisLabel: { color: "#9db0ca", rotate: 18 },
+            axisLine: { lineStyle: { color: "rgba(255,255,255,0.12)" } },
+          },
+          yAxis: {
+            type: "value",
+            min: 0,
+            max: axisLimit,
+            axisLabel: {
+              color: "#9db0ca",
+              formatter: (value) =>
+                new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(value),
+            },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+          },
+          series: [
+            {
+              name: "Solar self-used",
+              type: "bar",
+              stack: "demand",
+              barMaxWidth: 30,
+              showBackground: true,
+              backgroundStyle: { color: "rgba(255,255,255,0.03)", borderRadius: 14 },
+              itemStyle: {
+                borderRadius: [0, 0, 0, 0],
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "#7ff0ba" },
+                  { offset: 1, color: "#3db683" },
+                ]),
+                shadowColor: "rgba(85, 214, 158, 0.2)",
+                shadowBlur: 12,
+              },
+              data: bills.map((bill) => bill.solarSelfUsed),
+            },
+            {
+              name: "KSEB import",
+              type: "bar",
+              stack: "demand",
+              barMaxWidth: 30,
+              itemStyle: {
+                borderRadius: [12, 12, 0, 0],
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "#7cb0ff" },
+                  { offset: 1, color: "#3267ea" },
+                ]),
+                shadowColor: "rgba(79, 140, 255, 0.22)",
+                shadowBlur: 14,
+              },
+              data: bills.map((bill) => bill.unitsImported),
+            },
+            {
+              name: "Solar to grid",
+              type: "bar",
+              barMaxWidth: 30,
+              itemStyle: {
+                borderRadius: [12, 12, 0, 0],
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                  { offset: 0, color: "#ff9faa" },
+                  { offset: 1, color: "#ef6373" },
+                ]),
+                shadowColor: "rgba(255, 125, 137, 0.24)",
+                shadowBlur: 14,
+              },
+              data: bills.map((bill) => bill.unitsExported),
+            },
+            {
+              name: "Solar generated",
+              type: "line",
+              smooth: true,
+              symbolSize: 7,
+              itemStyle: { color: "#ffd36f" },
+              lineStyle: { width: 2.5, color: "#ffd36f" },
+              data: bills.map((bill) => bill.solarGeneration),
+            },
+          ],
+        });
+        return chart;
+      }
+
+      function buildChargeChart(bills) {
+        const chart = echarts.init(document.getElementById("chargeChart"));
+        chart.setOption({
+          backgroundColor: "transparent",
+          animationDuration: 700,
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(7, 17, 31, 0.96)",
+            borderColor: "rgba(255,255,255,0.1)",
+            textStyle: { color: "#eef5ff" },
+          },
+          legend: {
+            bottom: 0,
+            textStyle: { color: "#9db0ca" },
+          },
+          grid: { left: 12, right: 20, top: 12, bottom: 52, containLabel: true },
+          xAxis: {
+            type: "category",
+            data: bills.map((bill) => bill.label),
+            axisLabel: { color: "#9db0ca", rotate: 22 },
+            axisLine: { lineStyle: { color: "rgba(255,255,255,0.12)" } },
+          },
+          yAxis: {
+            type: "value",
+            axisLabel: { color: "#9db0ca" },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+          },
+          series: [
+            {
+              name: "Fixed",
+              type: "bar",
+              stack: "charges",
+              data: bills.map((bill) => bill.fixedCharge),
+              itemStyle: { color: "#4f8cff" },
+            },
+            {
+              name: "Energy",
+              type: "bar",
+              stack: "charges",
+              data: bills.map((bill) => bill.energyCharge),
+              itemStyle: { color: "#34d7ff" },
+            },
+            {
+              name: "Duty + rent",
+              type: "bar",
+              stack: "charges",
+              data: bills.map((bill) => bill.taxAndRent),
+              itemStyle: { color: "#ffbf5f" },
+            },
+            {
+              name: "Other",
+              type: "bar",
+              stack: "charges",
+              data: bills.map((bill) => bill.otherCharges),
+              itemStyle: { color: "#ff7d89" },
+            },
+          ],
+        });
+        return chart;
+      }
+
+      function buildPerformanceChart(bills) {
+        const chart = echarts.init(document.getElementById("performanceChart"));
+        chart.setOption({
+          backgroundColor: "transparent",
+          animationDuration: 700,
+          tooltip: {
+            trigger: "axis",
+            backgroundColor: "rgba(7, 17, 31, 0.96)",
+            borderColor: "rgba(255,255,255,0.1)",
+            textStyle: { color: "#eef5ff" },
+          },
+          legend: {
+            top: 0,
+            textStyle: { color: "#9db0ca" },
+          },
+          grid: { left: 14, right: 20, top: 44, bottom: 18, containLabel: true },
+          xAxis: {
+            type: "category",
+            data: bills.map((bill) => bill.label),
+            axisLabel: { color: "#9db0ca" },
+            axisLine: { lineStyle: { color: "rgba(255,255,255,0.12)" } },
+          },
+          yAxis: [
+            {
+              type: "value",
+              name: "Coverage %",
+              axisLabel: {
+                color: "#9db0ca",
+                formatter: (value) => `${value}%`,
+              },
+              splitLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+            },
+            {
+              type: "value",
+              name: "INR / kWh",
+              axisLabel: { color: "#9db0ca" },
+              splitLine: { show: false },
+            },
+          ],
+          series: [
+            {
+              name: "Demand met by solar",
+              type: "line",
+              smooth: true,
+              symbolSize: 8,
+              itemStyle: { color: "#55d69e" },
+              lineStyle: { width: 3, color: "#55d69e" },
+              data: bills.map((bill) =>
+                Number.isFinite(bill.solarCoverage) ? +(bill.solarCoverage * 100).toFixed(1) : null,
+              ),
+            },
+            {
+              name: "Cost per home unit",
+              type: "line",
+              yAxisIndex: 1,
+              smooth: true,
+              symbolSize: 7,
+              itemStyle: { color: "#ffbf5f" },
+              lineStyle: { width: 2.5, color: "#ffbf5f" },
+              data: bills.map((bill) =>
+                Number.isFinite(bill.costPerHomeUnit) ? +bill.costPerHomeUnit.toFixed(2) : null,
+              ),
+            },
+          ],
+        });
+        return chart;
+      }
+
+      function renderLedger(bills) {
+        const body = document.getElementById("ledgerBody");
+        body.replaceChildren(
+          ...bills.map((bill) => {
+            const row = document.createElement("tr");
+            const values = [
+              bill.label,
+              formatINR(bill.total_amount),
+              formatUnits(bill.unitsImported),
+              formatUnits(bill.unitsExported),
+              formatUnits(bill.solarGeneration),
+              formatUnits(bill.solarSelfUsed),
+              formatUnits(bill.homeDemand),
+              formatUnits(bill.netGrid),
+              formatPercent(bill.solarCoverage),
+              Number.isFinite(bill.costPerHomeUnit) ? formatINR(bill.costPerHomeUnit, 2) : "-",
+            ];
+
+            values.forEach((value) => {
+              const cell = document.createElement("td");
+              cell.textContent = value;
+              row.appendChild(cell);
+            });
+
+            return row;
+          }),
+        );
+      }
+
+      function renderError(message) {
+        setStatus(message, "error");
+        resetCharts();
+        renderChartFallback(message);
+        const footerNote = document.getElementById("footerNote");
+        if (footerNote) {
+          const error = document.createElement("span");
+          error.className = "error-state";
+          error.textContent = message;
+          footerNote.replaceChildren(error);
+        }
+      }
+
+      async function loadBills() {
+        const response = await fetch(DATA_FILE, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Could not load ${DATA_FILE} (${response.status}). Serve the folder over HTTP and refresh the page.`);
+        }
+
+        const rawBills = await response.json();
+        if (!Array.isArray(rawBills)) {
+          throw new Error(`${DATA_FILE} must contain an array of parsed bills.`);
+        }
+
+        const normalizedBills = normalizeBills(rawBills);
+        const invalidDates = normalizedBills.filter((bill) => !parseDate(bill.bill_date));
+        if (invalidDates.length) {
+          const examples = invalidDates
+            .slice(0, 3)
+            .map((bill) => bill.bill_date || bill.record_id || "unknown")
+            .join(", ");
+          throw new Error(
+            `${DATA_FILE} contains ${invalidDates.length} invalid bill_date value(s). Expected DD-MM-YYYY. Examples: ${examples}`,
+          );
+        }
+        return normalizedBills.map((bill, index) => deriveBill(bill, index, normalizedBills));
+      }
+
+      function summarizeBills(bills) {
+        const billAmounts = bills.map((bill) => bill.total_amount).filter(Number.isFinite);
+        const imports = bills.map((bill) => bill.unitsImported).filter(Number.isFinite);
+        const solarToGrid = bills.map((bill) => bill.unitsExported).filter(Number.isFinite);
+        const solarGeneration = bills.map((bill) => bill.solarGeneration).filter(Number.isFinite);
+        const solarSelfUse = bills.map((bill) => bill.solarSelfUsed).filter(Number.isFinite);
+        const homeDemand = bills.map((bill) => bill.homeDemand).filter(Number.isFinite);
+        const solarCoverage = bills.map((bill) => bill.solarCoverage).filter(Number.isFinite);
+
+        const totalSpend = sum(billAmounts);
+        const totalFixed = sum(bills.map((b) => (Number.isFinite(b.fixedCharge) ? b.fixedCharge : 0)));
+        const totalEnergy = sum(bills.map((b) => (Number.isFinite(b.energyCharge) ? b.energyCharge : 0)));
+        const totalTaxAndRent = sum(bills.map((b) => (Number.isFinite(b.taxAndRent) ? b.taxAndRent : 0)));
+        const totalOther = sum(bills.map((b) => (Number.isFinite(b.otherCharges) ? b.otherCharges : 0)));
+        const costPerUnitValues = bills.map((b) => b.costPerHomeUnit).filter(Number.isFinite);
+
+        return {
+          totalSpend,
+          avgBill: average(billAmounts),
+          totalGridImport: sum(imports),
+          totalSolarToGrid: sum(solarToGrid),
+          totalSolarGeneration: sum(solarGeneration),
+          totalSolarSelfUsed: sum(solarSelfUse),
+          totalHomeDemand: sum(homeDemand),
+          avgCoverage: average(solarCoverage),
+          avgSolarGeneration: average(solarGeneration),
+          solarSelfUseShare:
+            sum(solarGeneration) > 0 ? sum(solarSelfUse) / sum(solarGeneration) : null,
+          latestBill: bills[bills.length - 1] || null,
+          previousBill: bills[bills.length - 2] || null,
+          lowestBill: minBy(bills, (bill) => bill.total_amount),
+          highestBill: maxBy(bills, (bill) => bill.total_amount),
+          highestDemand: maxBy(bills, (bill) => bill.homeDemand),
+          bestCoverage: maxBy(bills, (bill) => bill.solarCoverage),
+          highestSolarGenerationMonth: maxBy(bills, (bill) => bill.solarGeneration),
+          highestSolarToGridMonth: maxBy(bills, (bill) => bill.unitsExported),
+          totalFixed,
+          totalEnergy,
+          totalTaxAndRent,
+          totalOther,
+          energyShareOfSpend: totalSpend > 0 ? totalEnergy / totalSpend : null,
+          fixedShareOfSpend: totalSpend > 0 ? totalFixed / totalSpend : null,
+          lowestCostPerUnitBill: minBy(bills, (bill) => bill.costPerHomeUnit),
+          highestCostPerUnitBill: maxBy(bills, (bill) => bill.costPerHomeUnit),
+          avgCostPerUnit: costPerUnitValues.length ? average(costPerUnitValues) : null,
+        };
+      }
+
+      function buildInsights(summary) {
+        const insights = [];
+
+        if (summary.lowestBill && summary.highestBill) {
+          insights.push({
+            kicker: "Lowest bill",
+            text: `${summary.lowestBill.label} came in at ${formatINR(summary.lowestBill.total_amount)}, while the peak month was ${summary.highestBill.label} at ${formatINR(summary.highestBill.total_amount)}.`,
+          });
+        }
+
+        if (summary.bestCoverage) {
+          insights.push({
+            kicker: "Strongest solar share",
+            text: `${summary.bestCoverage.label} met ${formatPercent(summary.bestCoverage.solarCoverage, 1)} of home demand directly from on-site solar.`,
+          });
+        }
+
+        if (summary.highestDemand) {
+          insights.push({
+            kicker: "Highest demand",
+            text: `${summary.highestDemand.label} recorded ${formatUnits(summary.highestDemand.homeDemand)} of household demand, which is where the system faced its biggest load.`,
+          });
+        }
+
+        if (summary.highestSolarToGridMonth) {
+          insights.push({
+            kicker: "Highest solar to grid",
+            text: `${summary.highestSolarToGridMonth.label} sent ${formatUnits(summary.highestSolarToGridMonth.unitsExported)} of solar to the grid and kept ${formatUnits(summary.highestSolarToGridMonth.solarSelfUsed)} on site.`,
+          });
+        }
+
+        if (summary.highestSolarGenerationMonth) {
+          insights.push({
+            kicker: "Strongest solar generation",
+            text: `${summary.highestSolarGenerationMonth.label} generated ${formatUnits(summary.highestSolarGenerationMonth.solarGeneration)}, with ${formatUnits(summary.highestSolarGenerationMonth.solarSelfUsed)} used on site.`,
+          });
+        }
+
+        if (insights.length) {
+          return insights;
+        }
+
+        return [
+          {
+            kicker: "Waiting for more data",
+            text: "The bill archive loaded, but there is not enough complete data yet to surface highlights.",
+          },
+        ];
+      }
+
+      function renderDashboard(bills, summary) {
+        currentBills = bills;
+        setStatus("");
+        clearChartFallback();
+
+        setMetric(
+          "totalSpend",
+          formatINR(summary.totalSpend),
+          "totalSpendMeta",
+          `${formatINR(summary.avgBill)} average across ${bills.length} bills.`,
+        );
+        setMetric(
+          "avgBill",
+          formatINR(summary.avgBill),
+          "avgBillMeta",
+          describeBill(
+            summary.lowestBill,
+            (bill) => `${bill.label} was the lowest at ${formatINR(bill.total_amount)}.`,
+            "Waiting for a valid billed amount in the loaded data.",
+          ),
+        );
+        setMetric(
+          "totalDemand",
+          formatUnits(summary.totalHomeDemand),
+          "totalDemandMeta",
+          describeBill(
+            summary.highestDemand,
+            (bill) => `${bill.label} had the highest measured home demand at ${formatUnits(bill.homeDemand)}.`,
+            "Home demand appears once both KSEB import and solar self-use are available.",
+          ),
+        );
+        setMetric(
+          "solarCoverage",
+          formatPercent(summary.avgCoverage, 1),
+          "solarCoverageMeta",
+          describeBill(
+            summary.bestCoverage,
+            (bill) => `${bill.label} met ${formatPercent(bill.solarCoverage, 1)} of home demand directly from solar.`,
+            "Demand met by solar appears once solar generation and solar-to-grid values are both available.",
+          ),
+        );
+        setMetric(
+          "gridImport",
+          formatUnits(summary.totalGridImport),
+          "gridImportMeta",
+          `${formatUnits(summary.totalSolarToGrid)} of measured solar was sent to the grid.`,
+        );
+        setMetric(
+          "solarSelfUse",
+          formatUnits(summary.totalSolarSelfUsed),
+          "solarSelfUseMeta",
+          `${formatUnits(summary.totalSolarGeneration)} total measured solar generation, including ${formatUnits(summary.totalSolarToGrid)} sent to the grid.`,
+        );
+        setMetric(
+          "solarGenerated",
+          formatUnits(summary.totalSolarGeneration),
+          "solarGeneratedMeta",
+          describeBill(
+            summary.highestSolarGenerationMonth,
+            (bill) => `${bill.label} was the strongest solar month at ${formatUnits(bill.solarGeneration)}.`,
+            "Solar generation appears once the bill data includes measured generation readings.",
+          ),
+        );
+
+        document.getElementById("overviewSolarPeakValue").textContent = summary.highestSolarGenerationMonth
+          ? summary.highestSolarGenerationMonth.label
+          : "-";
+        document.getElementById("overviewSolarPeakMeta").textContent = summary.highestSolarGenerationMonth
+          ? `${formatUnits(summary.highestSolarGenerationMonth.solarGeneration)} generated, with ${formatUnits(summary.highestSolarGenerationMonth.solarSelfUsed)} self-used.`
+          : "Waiting for measured solar generation in the loaded data.";
+
+        document.getElementById("overviewSolarUseValue").textContent = formatPercent(
+          summary.solarSelfUseShare,
+          1,
+        );
+        document.getElementById("overviewSolarUseMeta").textContent = Number.isFinite(summary.avgSolarGeneration)
+          ? `${formatUnits(summary.avgSolarGeneration)} average solar generation per bill cycle.`
+          : "Self-use ratio appears once generation and export readings are available.";
+
+        document.getElementById("overviewSolarLatestValue").textContent = summary.latestBill
+          ? formatUnits(summary.latestBill.solarGeneration)
+          : "-";
+        document.getElementById("overviewSolarLatestMeta").textContent =
+          summary.latestBill && Number.isFinite(summary.latestBill.solarSelfUsed)
+            ? `${summary.latestBill.label} self-used ${formatUnits(summary.latestBill.solarSelfUsed)} and sent ${formatUnits(summary.latestBill.unitsExported)} to the grid.`
+            : "Latest month solar details appear once generation and export readings are available.";
+
+        const billDelta =
+          summary.latestBill &&
+          summary.previousBill &&
+          Number.isFinite(summary.latestBill.total_amount) &&
+          Number.isFinite(summary.previousBill.total_amount)
+            ? summary.latestBill.total_amount - summary.previousBill.total_amount
+            : null;
+
+        document.getElementById("trendBadge").textContent = Number.isFinite(billDelta)
+          ? `Latest bill ${billDelta >= 0 ? "up" : "down"} ${formatINR(Math.abs(billDelta))} vs previous month`
+          : "Tracking month-on-month movement";
+
+        document.getElementById("ledgerBadge").textContent =
+          `${bills.length} usage months ready for review`;
+
+        const cheapestEl = document.getElementById("costsCheapestValue");
+        const cheapestMetaEl = document.getElementById("costsCheapestMeta");
+        if (cheapestEl && cheapestMetaEl) {
+          if (summary.lowestBill && Number.isFinite(summary.lowestBill.total_amount)) {
+            cheapestEl.textContent = summary.lowestBill.label;
+            cheapestMetaEl.textContent = `Lowest bill in the period at ${formatINR(summary.lowestBill.total_amount)}.`;
+          } else {
+            cheapestEl.textContent = "-";
+            cheapestMetaEl.textContent = "Lowest bill in the period.";
+          }
+        }
+        const energyShareValEl = document.getElementById("costsEnergyShareValue");
+        const energyShareMetaEl = document.getElementById("costsEnergyShareMeta");
+        if (energyShareValEl && energyShareMetaEl) {
+          if (Number.isFinite(summary.energyShareOfSpend)) {
+            energyShareValEl.textContent = formatPercent(summary.energyShareOfSpend, 1);
+            energyShareMetaEl.textContent = "Share of total spend that was energy (variable) charge.";
+          } else {
+            energyShareValEl.textContent = "-";
+            energyShareMetaEl.textContent = "Share of total spend that was energy (variable) charge.";
+          }
+        }
+        const costPerUnitValEl = document.getElementById("costsCostPerUnitValue");
+        const costPerUnitMetaEl = document.getElementById("costsCostPerUnitMeta");
+        if (costPerUnitValEl && costPerUnitMetaEl) {
+          const low = summary.lowestCostPerUnitBill && Number.isFinite(summary.lowestCostPerUnitBill.costPerHomeUnit)
+            ? summary.lowestCostPerUnitBill.costPerHomeUnit
+            : null;
+          const high = summary.highestCostPerUnitBill && Number.isFinite(summary.highestCostPerUnitBill.costPerHomeUnit)
+            ? summary.highestCostPerUnitBill.costPerHomeUnit
+            : null;
+          if (low !== null && high !== null) {
+            costPerUnitValEl.textContent = low === high ? formatINR(low, 2) : `${formatINR(low, 2)}–${formatINR(high, 2)}`;
+            costPerUnitMetaEl.textContent =
+              low === high
+                ? "Cost per home kWh across months."
+                : `Lowest in ${summary.lowestCostPerUnitBill.label}, highest in ${summary.highestCostPerUnitBill.label}.`;
+          } else {
+            costPerUnitValEl.textContent = "-";
+            costPerUnitMetaEl.textContent = "Range of cost per home kWh across months.";
+          }
+        }
+
+        renderInsights(buildInsights(summary));
+
+        const footerNote = document.getElementById("footerNote");
+        footerNote.textContent =
+          "All figures are calculated locally from bills.json. Labels show the previous month's usage, while bill_date remains the original bill date. KSEB import is energy drawn from the grid, solar to grid comes from the bill's export reading, and demand met by solar = self-consumed solar / total home demand.";
+
+        renderLedger(bills);
+
+        if (!window.echarts) {
+          setStatus(
+            "The dashboard data loaded, but charts are unavailable because ECharts could not be loaded from the CDN.",
+            "warning",
+          );
+          renderChartFallback("Charts are unavailable because ECharts could not be loaded from the CDN.");
+          setActiveTab(activeTabId);
+          return;
+        }
+
+        resetCharts();
+        setActiveTab(activeTabId);
+      }
+
+      async function init() {
+        setLoadingState(
+          true,
+          "Loading your bill archive",
+          "Fetching bills.json, normalizing the records, and preparing the charts.",
+        );
+        try {
+          const bills = await loadBills();
+          if (!bills.length) {
+            renderError(`No bill data was found in ${DATA_FILE}.`);
+            return;
+          }
+
+          const summary = summarizeBills(bills);
+          renderDashboard(bills, summary);
+        } finally {
+          setLoadingState(false);
+        }
+      }
+
+      setupTabs();
+
+      init().catch((error) => {
+        console.error(error);
+        renderError(error.message || `Could not render ${DATA_FILE}.`);
+      });
+    </script>
+  </body>
+</html>

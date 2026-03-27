@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kseb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kseb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "${DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/kseb}"
+      LOCAL_STORAGE_ROOT: /app/storage/objects
+      SESSION_COOKIE_SECURE: "${SESSION_COOKIE_SECURE:-false}"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "${DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/kseb}"
+      LOCAL_STORAGE_ROOT: /app/storage/objects
+      WORKER_NAME: worker-1
+    volumes:
+      - ./storage:/app/storage
+    command: ["python", "-m", "app.worker"]
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "${DATABASE_URL:-postgresql+psycopg://postgres:postgres@postgres:5432/kseb}"
+      LOCAL_STORAGE_ROOT: /app/storage/objects
+    volumes:
+      - ./storage:/app/storage
+    command: ["python", "-m", "app.scheduler"]
+
+volumes:
+  postgres-data:
