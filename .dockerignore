@@ -1,0 +1,15 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.py[cod]
+
+.env
+.env.*
+!.env.example
+
+kseb-bills
+exports
+*.raw.json
+docker-compose.yml
+storage

@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KSEB Electricity Bills & Bill Stats | Kerala Electricity Cost</title>
+    <meta
+      name="description"
+      content="Track your KSEB electricity bills in Kerala: monthly spend, cost per unit (kWh), and solar import/export insights. Sign in with your consumer number."
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#06111d" />
+    <link rel="canonical" href="https://kseb.akjohn.dev/" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta
+      property="og:title"
+      content="KSEB Electricity Bills & Bill Stats | Kerala Electricity Cost"
+    />
+    <meta
+      property="og:description"
+      content="Track monthly KSEB bills, electricity cost per unit (kWh), and solar import/export behavior."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kseb.akjohn.dev/" />
+    <meta property="og:site_name" content="KSEB Bill Stats" />
+    <meta property="og:image" content="https://kseb.akjohn.dev/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="KSEB Electricity Bills & Bill Stats | Kerala Electricity Cost"
+    />
+    <meta
+      name="twitter:description"
+      content="Track monthly KSEB bills, electricity cost per unit (kWh), and solar import/export behavior."
+    />
+    <meta name="twitter:image" content="https://kseb.akjohn.dev/og-image.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js" defer></script>
+    <script src="/app.js" defer></script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "KSEB Bill Stats",
+        "url": "https://kseb.akjohn.dev/",
+        "description": "Private KSEB electricity bill analytics for Kerala households."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "KSEB Bill Stats",
+        "url": "https://kseb.akjohn.dev/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Web",
+        "description": "Track KSEB bills, cost per kWh, and solar import/export insights for Kerala electricity consumers."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is the KSEB electricity cost per unit (kWh)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The app calculates electricity cost per kWh from your KSEB bill totals divided by measured home demand (kWh) derived from imported units and solar self-used."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which components make up a KSEB electricity bill in Kerala?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Bills are broken down into fixed charges, energy charges, electricity duty, meter rent, and any remaining adjustments across each billing cycle."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How does solar export influence my KSEB bills?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Solar export (solar sent to the grid) and solar self-consumption change how your KSEB import units are billed, and the dashboard shows how those changes affect total spend."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why do bill charts match usage months to the previous bill?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Billing often corresponds to the previous month's usage. The dashboard normalizes figures to usage month while keeping the original bill date for reference."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <div class="shell">
+      <div id="flash" class="flash" hidden></div>
+      <div id="loadingState" class="loading-state" hidden aria-live="polite">
+        <div class="loading-copy">
+          <strong id="loadingTitle">Fetching your latest bills</strong>
+          <span id="loadingDetail">This can take a few seconds during your first sign-in.</span>
+        </div>
+        <div class="loading-bar" aria-hidden="true">
+          <span class="loading-bar-indicator"></span>
+        </div>
+      </div>
+
+      <div id="landing" class="landing">
+        <div class="landing-column">
+          <header class="top-bar">
+            <div class="brand-block">
+              <p class="brand-name">KSEB Bill Stats</p>
+              <p class="brand-tagline">Private Kerala electricity bill history and cost insights.</p>
+            </div>
+          </header>
+
+          <section id="authCard" class="card auth-card">
+            <div class="section-head">
+              <div>
+                <h1 class="auth-title">Sign in</h1>
+                <p class="section-copy">
+                  Enter your KSEB consumer number and registered mobile to open your private dashboard.
+                </p>
+              </div>
+            </div>
+            <div id="savedAccounts" class="saved-accounts" hidden>
+              <p class="saved-accounts-label">Saved accounts</p>
+              <div id="savedAccountsList" class="saved-accounts-list"></div>
+            </div>
+            <form id="loginForm" class="form-grid" autocomplete="on">
+              <label>
+                <span>Consumer number</span>
+                <input
+                  id="consumerNumber"
+                  name="username"
+                  type="text"
+                  autocomplete="username"
+                  inputmode="numeric"
+                  required
+                />
+              </label>
+              <label>
+                <span>Registered mobile number</span>
+                <input
+                  id="mobileNumber"
+                  name="tel"
+                  type="tel"
+                  autocomplete="tel"
+                  inputmode="numeric"
+                  required
+                />
+              </label>
+              <button class="primary" type="submit">Open my dashboard</button>
+            </form>
+          </section>
+        </div>
+      </div>
+
+      <footer id="seo-login-section" class="site-footer" aria-label="KSEB bill stats FAQ">
+        <details class="faq-details">
+          <summary>How cost per unit and solar stats work</summary>
+          <div class="faq-body">
+            <div>
+              <h2>How is electricity cost per unit calculated?</h2>
+              <p>
+                It divides each billing cycle's total amount by the derived home demand (kWh),
+                separating solar self-used from solar exported to the grid.
+              </p>
+            </div>
+            <div>
+              <h2>What charge components are included?</h2>
+              <p>
+                Fixed charges, energy charges, electricity duty, meter rent, and remaining adjustments
+                are summarized across each cycle.
+              </p>
+            </div>
+            <div>
+              <h2>Why do graphs show month-on-month usage trends?</h2>
+              <p>
+                Billing records often map to the previous month's usage. Charts normalize usage month
+                while keeping the original bill date for reference.
+              </p>
+            </div>
+          </div>
+        </details>
+      </footer>
+
+      <main id="appPanel" hidden>
+        <header class="dashboard-header card">
+          <div class="identity-row">
+            <div>
+              <p class="section-kicker">Your account</p>
+              <h2 id="identityTitle">Consumer</h2>
+              <p class="section-copy" id="identityMeta">Your secure session is active.</p>
+            </div>
+            <div class="header-actions">
+              <button id="syncButton" class="primary" type="button">Fetch latest</button>
+              <div class="menu-wrap">
+                <button
+                  id="moreMenuButton"
+                  class="secondary"
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="moreMenu"
+                >
+                  More
+                </button>
+                <div id="moreMenu" class="menu-panel" hidden role="menu">
+                  <button id="uploadMenuButton" class="menu-item" type="button" role="menuitem">
+                    Upload PDFs
+                  </button>
+                  <button id="notificationsMenuButton" class="menu-item" type="button" role="menuitem">
+                    Notifications
+                  </button>
+                  <button id="pushButton" class="menu-item" type="button" role="menuitem">
+                    Enable notifications
+                  </button>
+                  <button id="exportButton" class="menu-item" type="button" role="menuitem">
+                    Export my data
+                  </button>
+                  <button id="deleteButton" class="menu-item danger-text" type="button" role="menuitem">
+                    Delete account
+                  </button>
+                  <button id="logoutButton" class="menu-item" type="button" role="menuitem">
+                    Log out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <form id="uploadForm" class="upload-row" hidden>
+            <input id="uploadInput" type="file" accept="application/pdf,.pdf" multiple required />
+            <button class="secondary" type="submit">Upload</button>
+          </form>
+        </header>
+
+        <div id="chartStatusBanner" class="status-banner" hidden aria-live="polite"></div>
+
+        <section id="notificationsPanel" class="card notifications-panel" hidden>
+          <div class="section-head">
+            <div>
+              <p class="section-kicker">Moments</p>
+              <h2>Notifications</h2>
+            </div>
+            <button id="closeNotificationsButton" class="ghost" type="button">Close</button>
+          </div>
+          <div id="notificationList" class="stack-list"></div>
+        </section>
+
+        <div class="sticky-controls">
+          <nav class="tab-nav" aria-label="Dashboard sections" role="tablist">
+            <button
+              class="tab-button is-active"
+              id="tab-overview"
+              type="button"
+              role="tab"
+              aria-controls="panel-overview"
+              aria-selected="true"
+              tabindex="0"
+              data-tab="overview"
+            >
+              Overview
+            </button>
+            <button
+              class="tab-button"
+              id="tab-energy"
+              type="button"
+              role="tab"
+              aria-controls="panel-energy"
+              aria-selected="false"
+              tabindex="-1"
+              data-tab="energy"
+            >
+              Energy
+            </button>
+            <button
+              class="tab-button"
+              id="tab-ledger"
+              type="button"
+              role="tab"
+              aria-controls="panel-ledger"
+              aria-selected="false"
+              tabindex="-1"
+              data-tab="ledger"
+            >
+              Ledger
+            </button>
+          </nav>
+
+          <div class="date-range-bar" aria-label="Date range filter">
+            <div class="preset-row" role="group" aria-label="Date range presets">
+              <button class="preset-button is-active" type="button" data-range-preset="3m">3 mo</button>
+              <button class="preset-button" type="button" data-range-preset="6m">6 mo</button>
+              <button class="preset-button" type="button" data-range-preset="1y">1 yr</button>
+              <button class="preset-button" type="button" data-range-preset="all">All</button>
+              <button class="preset-button" type="button" data-range-preset="custom">Custom</button>
+            </div>
+            <div id="customRangeRow" class="custom-range-row" hidden>
+              <label>
+                <span>From</span>
+                <input id="rangeFrom" type="date" />
+              </label>
+              <label>
+                <span>To</span>
+                <input id="rangeTo" type="date" />
+              </label>
+              <button id="applyCustomRange" class="secondary" type="button">Apply</button>
+            </div>
+            <p id="rangeSummary" class="range-summary">Showing last 3 months</p>
+          </div>
+        </div>
+
+        <section
+          class="tab-panel"
+          id="panel-overview"
+          role="tabpanel"
+          aria-labelledby="tab-overview"
+          data-panel="overview"
+        >
+          <section class="grid metric-grid">
+            <article class="metric-card">
+              <div class="metric-label">Total spend</div>
+              <div class="metric-value" id="totalSpend">-</div>
+              <div class="metric-meta" id="totalSpendMeta">Across the selected range.</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">Average bill</div>
+              <div class="metric-value" id="avgBill">-</div>
+              <div class="metric-meta" id="avgBillMeta">Average in the selected range.</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">Total home demand</div>
+              <div class="metric-value" id="totalDemand">-</div>
+              <div class="metric-meta" id="totalDemandMeta">Import plus self-used solar.</div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-label">Demand met by solar</div>
+              <div class="metric-value" id="solarCoverage">-</div>
+              <div class="metric-meta" id="solarCoverageMeta">Average solar share of demand.</div>
+            </article>
+          </section>
+
+          <section class="main-grid">
+            <article class="card span-2">
+              <div class="section-head">
+                <div>
+                  <h2>Bill and demand trend</h2>
+                </div>
+                <div class="badge soft" id="trendBadge">Tracking month-on-month movement</div>
+              </div>
+              <div id="trendChart" class="chart"></div>
+            </article>
+
+            <aside class="card insights-card">
+              <div class="section-head">
+                <div>
+                  <h2>Highlights</h2>
+                </div>
+              </div>
+              <div id="insightList" class="insight-list"></div>
+            </aside>
+          </section>
+
+          <section class="energy-grid">
+            <article class="card">
+              <div class="section-head">
+                <div>
+                  <h2>Grid import vs solar</h2>
+                </div>
+              </div>
+              <div id="importVsSolarChart" class="chart compact-chart"></div>
+            </article>
+          </section>
+        </section>
+
+        <section
+          class="tab-panel"
+          id="panel-energy"
+          role="tabpanel"
+          aria-labelledby="tab-energy"
+          data-panel="energy"
+          hidden
+        >
+          <section class="mini-stats" aria-label="Solar overview summary">
+            <div class="mini-stat">
+              <div class="mini-stat-label">Peak solar month</div>
+              <div class="mini-stat-value" id="overviewSolarPeakValue">-</div>
+              <div class="mini-stat-meta" id="overviewSolarPeakMeta">Highest measured solar generation.</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Self-use ratio</div>
+              <div class="mini-stat-value" id="overviewSolarUseValue">-</div>
+              <div class="mini-stat-meta" id="overviewSolarUseMeta">Share of solar used on site.</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Latest solar</div>
+              <div class="mini-stat-value" id="overviewSolarLatestValue">-</div>
+              <div class="mini-stat-meta" id="overviewSolarLatestMeta">Most recent generation.</div>
+            </div>
+          </section>
+
+          <section class="energy-grid">
+            <article class="card">
+              <div class="section-head">
+                <div>
+                  <h2>Where the energy went</h2>
+                </div>
+              </div>
+              <div id="flowChart" class="chart compact-chart"></div>
+            </article>
+
+            <article class="card">
+              <div class="section-head">
+                <div>
+                  <h2>Coverage and cost</h2>
+                </div>
+              </div>
+              <div id="performanceChart" class="chart compact-chart"></div>
+            </article>
+          </section>
+        </section>
+
+        <section
+          class="tab-panel"
+          id="panel-ledger"
+          role="tabpanel"
+          aria-labelledby="tab-ledger"
+          data-panel="ledger"
+          hidden
+        >
+          <section class="card table-card">
+            <div class="section-head">
+              <div>
+                <h2>Bill ledger</h2>
+              </div>
+              <div class="badge" id="ledgerBadge">0 bills</div>
+            </div>
+            <div id="ledgerCards" class="ledger-cards" aria-live="polite"></div>
+            <div class="table-wrap desktop-ledger">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bill date</th>
+                    <th>Amount</th>
+                    <th>Import</th>
+                    <th>Export</th>
+                    <th>Solar</th>
+                    <th>Home demand</th>
+                    <th>Cost / unit</th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
