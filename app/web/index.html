@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>KSEB Bill Calculator, Analytics &amp; Solar Net-Metering Tracker | Kerala</title>
+    <meta
+      name="description"
+      content="Calculate bi-monthly KSEB domestic slab tariffs, track electricity spend, solar net-metering &amp; banked units, and analyze real cost per unit (₹/kWh) for Kerala households."
+    />
+    <meta
+      name="keywords"
+      content="kseb bill calculator, kseb electricity bill calculation, kseb solar net metering, kseb tariff slabs kerala, kerala electricity bill download, kseb consumer number, kseb bill stats, kseb banked units, solar energy kerala, kseb bi-monthly bill"
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#090c13" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="canonical" href="https://kseb.akjohn.dev/" />
+    <meta property="og:site_name" content="KSEB Energy Analytics" />
+    <meta property="og:title" content="KSEB Bill Calculator, Analytics &amp; Solar Net-Metering Tracker | Kerala" />
+    <meta property="og:description" content="Calculate bi-monthly KSEB domestic slab tariffs, track electricity spend, solar net-metering &amp; banked units, and analyze real cost per unit (₹/kWh) for Kerala households." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kseb.akjohn.dev/" />
+    <meta property="og:image" content="https://kseb.akjohn.dev/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KSEB Bill Calculator, Analytics &amp; Solar Net-Metering Tracker | Kerala" />
+    <meta name="twitter:description" content="Calculate bi-monthly KSEB domestic slab tariffs, track electricity spend, solar net-metering &amp; banked units, and analyze real cost per unit (₹/kWh)." />
+    <meta name="twitter:image" content="https://kseb.akjohn.dev/og-image.png" />
+
+    <!-- Google Fonts: Inter font stack -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js" defer></script>
+    <script src="/app.js" defer></script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "name": "KSEB Bill Stats & Energy Analytics",
+            "url": "https://kseb.akjohn.dev/",
+            "applicationCategory": "UtilitiesApplication",
+            "operatingSystem": "All",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "INR"
+            },
+            "description": "Private KSEB electricity bill analytics, solar net-metering tracker, and bi-monthly tariff calculator for Kerala households."
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How is the KSEB domestic electricity bill calculated using telescopic slabs?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "In Kerala, domestic consumers under the LT-1A tariff are billed on a bi-monthly cycle. For consumption up to 500 units bi-monthly (250 units monthly), billing is telescopic, meaning units are broken down and billed progressively across slabs (0-80 at ₹3.50, 81-160 at ₹4.20, 161-200 at ₹4.80, 201-280 at ₹5.80, 281-300 at ₹6.60, 301-400 at ₹7.30, and 401-500 at ₹8.40). If bi-monthly consumption exceeds 500 units, the tariff becomes non-telescopic and all units are billed at a single flat rate."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How does rooftop solar net-metering and banked unit settlement work in Kerala?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Under Kerala State Electricity Regulatory Commission (KERC) regulations, a bidirectional meter records grid imports and solar exports. When imports exceed exports, you pay energy charges only on the net imported units. When exports exceed imports, surplus units are banked and carried over to offset future bi-monthly bills until the annual settlement on September 30 at the APPC rate."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Where can I find my 13-digit KSEB consumer number?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Your 13-digit consumer number is printed at the top of your physical KSEB bill receipt and official e-bills downloaded from the KSEB Web Self-Service portal."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What charges make up the total KSEB electricity bill?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "A standard KSEB electricity bill includes Energy Charges (based on consumption slabs), Fixed Charges (based on single or three phase connection), 10% statutory Electricity Duty, Fuel Surcharge, and Meter Rent with GST."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is my KSEB data and login private and secure?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. This application connects directly via HTTPS to the official KSEB Web Self-Service portal, stores credentials encrypted at rest using Fernet AES-128-CBC keys, and provides one-click account erasure and complete data exports."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Top Progress Bar for Async Tasks -->
+    <div id="topProgressBar" class="top-progress-bar" hidden aria-hidden="true">
+      <div class="progress-bar-glow"></div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastContainer" class="toast-container" aria-live="polite">
+      <div id="toastPill" class="toast-card" hidden>
+        <div id="toastIcon" class="toast-icon"></div>
+        <div class="toast-body">
+          <strong id="toastTitle" class="toast-title">Notice</strong>
+          <p id="toastMessage" class="toast-message"></p>
+        </div>
+        <button id="toastCloseBtn" class="toast-close" type="button" aria-label="Dismiss">✕</button>
+      </div>
+    </div>
+
+    <!-- Hidden compatibility elements -->
+    <div id="flash" hidden></div>
+    <div id="loadingState" hidden>
+      <span id="loadingTitle"></span>
+      <span id="loadingDetail"></span>
+    </div>
+
+    <!-- ===================================================================
+         1. CONVENTIONAL SIGN-IN SCREEN & PUBLIC TOOLS
+         =================================================================== -->
+    <div id="landing" class="auth-layout">
+      <div class="auth-box">
+        
+        <!-- App Logo & Title -->
+        <div class="auth-header">
+          <div class="brand-logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <h1 class="auth-title">KSEB Electricity Bills &amp; Analytics</h1>
+          <p class="auth-desc">Kerala domestic electricity bill calculator, solar net-metering tracker &amp; spend analytics</p>
+        </div>
+
+        <!-- Landing Navigation Tabs (Public Tools & Auth) -->
+        <nav class="landing-tabs" aria-label="Portal Navigation" role="tablist">
+          <button type="button" class="landing-tab is-active" data-landing-tab="signin" id="landingTabSignin" role="tab" aria-selected="true">
+            <span class="landing-tab-icon">🔐</span>
+            <span>Sign In</span>
+          </button>
+          <button type="button" class="landing-tab" data-landing-tab="calculator" id="landingTabCalculator" role="tab" aria-selected="false">
+            <span class="landing-tab-icon">🧮</span>
+            <span>Bill Calculator</span>
+          </button>
+          <button type="button" class="landing-tab" data-landing-tab="solar" id="landingTabSolar" role="tab" aria-selected="false">
+            <span class="landing-tab-icon">☀️</span>
+            <span>Solar Estimator</span>
+          </button>
+          <button type="button" class="landing-tab" data-landing-tab="faq" id="landingTabFaq" role="tab" aria-selected="false">
+            <span class="landing-tab-icon">❓</span>
+            <span>Tariff FAQs</span>
+          </button>
+        </nav>
+
+        <!-- Pane 1: Sign In Screen -->
+        <div id="landingPaneSignin" class="landing-pane is-active">
+          <!-- Main Auth Card -->
+          <div id="authCard" class="card auth-card">
+            
+            <!-- Saved Accounts Switcher -->
+            <div id="savedAccounts" class="saved-accounts-wrap" hidden>
+              <div class="section-micro-label">Saved Accounts on this Device</div>
+              <div id="savedAccountsList" class="saved-accounts-list"></div>
+            </div>
+
+            <!-- Sign-In Form -->
+            <form id="loginForm" class="auth-form" autocomplete="on">
+              <div class="form-group">
+                <div class="form-label-row">
+                  <label for="consumerNumber">Consumer Number</label>
+                  <span class="form-hint">13 digits (printed on bill)</span>
+                </div>
+                <input
+                  id="consumerNumber"
+                  name="username"
+                  type="text"
+                  class="form-control"
+                  placeholder="Enter 13-digit consumer number"
+                  autocomplete="username"
+                  inputmode="numeric"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <div class="form-label-row">
+                  <label for="mobileNumber">Registered Mobile Number</label>
+                  <span class="form-hint">10 digits</span>
+                </div>
+                <input
+                  id="mobileNumber"
+                  name="tel"
+                  type="tel"
+                  class="form-control"
+                  placeholder="Enter 10-digit registered mobile"
+                  autocomplete="tel"
+                  inputmode="numeric"
+                  required
+                />
+              </div>
+
+              <button class="btn btn-primary btn-block btn-lg" type="submit">
+                <span>Sign In</span>
+              </button>
+
+              <button id="demoModeBtn" class="btn btn-secondary btn-block" type="button" style="margin-top: 10px;">
+                <span>⚡ Explore Live Demo (Sample Data)</span>
+              </button>
+            </form>
+
+            <div class="auth-footer-note">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span>Direct encrypted connection to KSEB portal. Session data is private.</span>
+            </div>
+          </div>
+
+          <!-- Features Info List -->
+          <div class="auth-features">
+            <div class="feature-bullet">
+              <div class="bullet-icon">⚡</div>
+              <div class="bullet-text">
+                <strong>Automated Bill History</strong>
+                <span>Fetch and analyze your historical electricity bills across all cycles.</span>
+              </div>
+            </div>
+            <div class="feature-bullet">
+              <div class="bullet-icon">☀️</div>
+              <div class="bullet-text">
+                <strong>Solar Net Metering Insights</strong>
+                <span>Track on-site solar generation, self-consumption, and grid export units.</span>
+              </div>
+            </div>
+            <div class="feature-bullet">
+              <div class="bullet-icon">📊</div>
+              <div class="bullet-text">
+                <strong>Cost per Unit (₹/kWh)</strong>
+                <span>Calculate your effective rate per unit based on whole-home energy demand.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pane 2: KSEB Domestic Bill Calculator (Zero Auth) -->
+        <div id="landingPaneCalculator" class="landing-pane" hidden>
+          <div class="card landing-feature-card">
+            <div class="feature-card-header">
+              <div class="feature-card-title-group">
+                <h2 class="feature-card-title">KSEB Bi-Monthly Bill Calculator</h2>
+                <p class="feature-card-subtitle">Calculate LT-1A domestic slab charges, telescopic slabs &amp; 10% statutory duty</p>
+              </div>
+              <span class="badge-regulatory">KERC LT-1A Tariff</span>
+            </div>
+
+            <!-- Inputs -->
+            <div class="calc-inputs-grid">
+              <div class="form-group">
+                <label for="calcUnitsInput">Bi-Monthly Units Consumed (kWh)</label>
+                <div class="calc-input-row">
+                  <input type="number" id="calcUnitsInput" class="form-control" value="240" min="0" max="5000" step="1" />
+                  <span class="calc-input-unit">Units</span>
+                </div>
+                <input type="range" id="calcUnitsSlider" min="0" max="1000" step="10" value="240" class="calc-range-slider" />
+              </div>
+
+              <div class="form-group">
+                <label>Connection Phase</label>
+                <div class="calc-phase-toggle" role="radiogroup" aria-label="Connection Phase">
+                  <button type="button" class="phase-btn is-active" id="phaseSingleBtn" data-phase="single">Single Phase (1φ)</button>
+                  <button type="button" class="phase-btn" id="phaseThreeBtn" data-phase="three">Three Phase (3φ)</button>
+                </div>
+                <span class="form-hint" style="margin-top: 6px; display: block;">Standard domestic home supply</span>
+              </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="calc-kpi-grid">
+              <div class="calc-kpi-card highlight">
+                <span class="calc-kpi-label">Estimated Bill</span>
+                <span class="calc-kpi-val" id="calcTotalBill">₹1,362</span>
+                <span class="calc-kpi-sub" id="calcEffectiveRate">₹5.68 / unit effective</span>
+              </div>
+              <div class="calc-kpi-card">
+                <span class="calc-kpi-label">Energy Charge</span>
+                <span class="calc-kpi-val" id="calcEnergyCharge">₹1,040</span>
+                <span class="calc-kpi-sub" id="calcSlabTypeBadge">Telescopic</span>
+              </div>
+              <div class="calc-kpi-card">
+                <span class="calc-kpi-label">Fixed Charge</span>
+                <span class="calc-kpi-val" id="calcFixedCharge">₹180</span>
+                <span class="calc-kpi-sub" id="calcPhaseSub">Single Phase</span>
+              </div>
+              <div class="calc-kpi-card">
+                <span class="calc-kpi-label">Duty, Fuel &amp; Rent</span>
+                <span class="calc-kpi-val" id="calcDutySurcharge">₹142</span>
+                <span class="calc-kpi-sub">10% Duty + Fuel + Rent</span>
+              </div>
+            </div>
+
+            <!-- Alert Banner -->
+            <div id="calcSlabAlert" class="calc-slab-alert info">
+              <span class="alert-icon">ℹ️</span>
+              <span id="calcSlabAlertText">Telescopic Tariff: For consumption up to 500 units bi-monthly (250 units/month), lower slab units are billed at discounted progressive rates.</span>
+            </div>
+
+            <!-- Slab Breakdown Table -->
+            <div class="calc-breakdown-wrap">
+              <h3 class="calc-section-title">Itemized Slab Breakdown</h3>
+              <div class="table-responsive">
+                <table class="calc-table">
+                  <thead>
+                    <tr>
+                      <th>Slab Range</th>
+                      <th>Units Billed</th>
+                      <th>Rate (₹/Unit)</th>
+                      <th class="text-right">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="calcSlabTableBody">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <p class="calc-disclaimer">
+              * Simulated / calculated estimate based on Kerala State Electricity Regulatory Commission (KERC) LT-1A Domestic tariff schedules. Actual KSEB bills may reflect minor meter rent adjustments, meter reading days variations, and notified fuel surcharges.
+            </p>
+          </div>
+        </div>
+
+        <!-- Pane 3: Solar Net-Metering Estimator -->
+        <div id="landingPaneSolar" class="landing-pane" hidden>
+          <div class="card landing-feature-card">
+            <div class="feature-card-header">
+              <div class="feature-card-title-group">
+                <h2 class="feature-card-title">KSEB Solar Net-Metering Estimator</h2>
+                <p class="feature-card-subtitle">Model solar self-consumption, grid export, bi-monthly net billing &amp; banked units</p>
+              </div>
+              <span class="badge-regulatory">KSEB Net Metering</span>
+            </div>
+
+            <div class="calc-inputs-grid">
+              <div class="form-group">
+                <label for="solarGenInput">Bi-Monthly Solar Generation (kWh)</label>
+                <div class="calc-input-row">
+                  <input type="number" id="solarGenInput" class="form-control" value="480" min="0" max="5000" step="10" />
+                  <span class="calc-input-unit">kWh</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="solarDemandInput">Total Bi-Monthly Home Demand (kWh)</label>
+                <div class="calc-input-row">
+                  <input type="number" id="solarDemandInput" class="form-control" value="420" min="0" max="5000" step="10" />
+                  <span class="calc-input-unit">kWh</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Solar Flow Summary KPI Cards -->
+            <div class="calc-kpi-grid">
+              <div class="calc-kpi-card highlight">
+                <span class="calc-kpi-label">Estimated Savings</span>
+                <span class="calc-kpi-val" id="solarSavingsVal">₹2,840</span>
+                <span class="calc-kpi-sub" id="solarCoverageSub">100% solar coverage</span>
+              </div>
+              <div class="calc-kpi-card">
+                <span class="calc-kpi-label">Self-Consumed Solar</span>
+                <span class="calc-kpi-val" id="solarSelfConsumedVal">180 kWh</span>
+                <span class="calc-kpi-sub">Direct daytime use</span>
+              </div>
+              <div class="calc-kpi-card">
+                <span class="calc-kpi-label">Exported to Grid</span>
+                <span class="calc-kpi-val" id="solarExportVal">300 kWh</span>
+                <span class="calc-kpi-sub">Via bi-directional meter</span>
+              </div>
+              <div class="calc-kpi-card">
+                <span class="calc-kpi-label" id="solarNetStatusLabel">Banked Surplus Units</span>
+                <span class="calc-kpi-val" id="solarNetUnitsVal">+60 kWh</span>
+                <span class="calc-kpi-sub" id="solarNetUnitsSub">Carried to next cycle</span>
+              </div>
+            </div>
+
+            <!-- Solar Net Metering Rules Explainer -->
+            <div class="solar-explainer-box">
+              <h3 class="calc-section-title">How KSEB Solar Net-Metering Works</h3>
+              <ul class="solar-rules-list">
+                <li><strong>Bidirectional Meter:</strong> Measures energy imported from KSEB and excess solar energy exported back into the 230V/415V distribution grid.</li>
+                <li><strong>Net Settlement:</strong> If grid imports exceed exports, you only pay energy charges for the net imported units at the LT-1A slab rate.</li>
+                <li><strong>Unit Banking:</strong> If exports exceed imports, the surplus units are "banked" in your KSEB ledger and rolled over to offset subsequent bi-monthly cycles.</li>
+                <li><strong>Annual September Settlement:</strong> At the end of every settlement financial cycle (September 30), remaining banked units are settled by KSEB at the KERC-approved Average Power Purchase Cost (APPC) rate.</li>
+              </ul>
+            </div>
+
+            <p class="calc-disclaimer">
+              * Simulated / calculated estimation based on standard Kerala rooftop solar installation metrics. Actual self-consumption ratio depends on daily appliance operating hours.
+            </p>
+          </div>
+        </div>
+
+        <!-- Pane 4: Comprehensive SEO FAQ Section -->
+        <div id="landingPaneFaq" class="landing-pane" hidden>
+          <div class="card landing-feature-card">
+            <div class="feature-card-header">
+              <div class="feature-card-title-group">
+                <h2 class="feature-card-title">KSEB Electricity Tariffs &amp; Billing FAQs</h2>
+                <p class="feature-card-subtitle">Clear answers on Kerala electricity bills, slabs, solar net-metering &amp; privacy</p>
+              </div>
+            </div>
+
+            <div class="faq-accordion-wrap">
+              <details class="faq-item" open>
+                <summary class="faq-question">
+                  <span>How is the KSEB domestic electricity bill calculated using telescopic slabs?</span>
+                  <span class="faq-badge">കെ.എസ്.ഇ.ബി ബിൽ</span>
+                </summary>
+                <div class="faq-answer">
+                  <p>In Kerala, domestic consumers under the LT-1A tariff are billed on a <strong>bi-monthly (2-month)</strong> cycle. For total consumption up to 500 units bi-monthly (250 units monthly), billing is <strong>telescopic</strong>. This means units are broken down and billed progressively across slabs:</p>
+                  <ul>
+                    <li>First 80 units: ₹3.50 / unit</li>
+                    <li>Units 81 to 160: ₹4.20 / unit</li>
+                    <li>Units 161 to 200: ₹4.80 / unit</li>
+                    <li>Units 201 to 280: ₹5.80 / unit</li>
+                    <li>Units 281 to 300: ₹6.60 / unit</li>
+                    <li>Units 301 to 400: ₹7.30 / unit</li>
+                    <li>Units 401 to 500: ₹8.40 / unit</li>
+                  </ul>
+                  <p>If bi-monthly consumption exceeds 500 units, the tariff becomes <strong>non-telescopic</strong>, meaning all units are billed at a single flat slab rate (e.g., ₹6.60 to ₹9.50/unit), causing a noticeable jump in the bill amount.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span>How does rooftop solar net-metering and banked unit settlement work?</span>
+                  <span class="faq-badge">സോളാർ നെറ്റ് മീറ്ററിംഗ്</span>
+                </summary>
+                <div class="faq-answer">
+                  <p>Under Kerala State Electricity Regulatory Commission (KERC) net-metering regulations, a bi-directional energy meter records both grid import and solar export units:</p>
+                  <ul>
+                    <li><strong>Net Consumption:</strong> When Import &gt; Export, you pay energy charges only on the difference (Net Units) according to standard LT-1A slabs.</li>
+                    <li><strong>Banked Units:</strong> When Export &gt; Import, the surplus units are recorded as banked energy and carried over to offset subsequent bi-monthly bills.</li>
+                    <li><strong>September Settlement:</strong> Banked energy is cleared annually at the end of the settlement year (September 30). Unadjusted banked units are compensated by KSEB at the notified Average Power Purchase Cost (APPC).</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span>Where can I find my 13-digit KSEB consumer number?</span>
+                  <span class="faq-badge">13 അക്ക നമ്പർ</span>
+                </summary>
+                <div class="faq-answer">
+                  <p>Your 13-digit consumer number is printed at the top of your printed KSEB electricity bill receipt and on official e-bills downloaded from the KSEB Web Self-Service portal. It uniquely identifies your electrical section and consumer account across Kerala.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span>What components make up the total KSEB electricity bill?</span>
+                  <span class="faq-badge">ബിൽ ഘടകങ്ങൾ</span>
+                </summary>
+                <div class="faq-answer">
+                  <p>A standard KSEB electricity bill consists of:</p>
+                  <ul>
+                    <li><strong>Energy Charge:</strong> Billed on imported or net consumed units according to the tariff slab schedule.</li>
+                    <li><strong>Fixed Charge:</strong> Bi-monthly charge based on your connection phase (single-phase vs three-phase) and sanctioned connected load.</li>
+                    <li><strong>Electricity Duty:</strong> 10% statutory levy on total energy charges under the Kerala Electricity Duty Act.</li>
+                    <li><strong>Fuel Surcharge:</strong> Periodic adjustment notified by KERC per unit consumed.</li>
+                    <li><strong>Meter Rent &amp; GST:</strong> Bi-monthly rental fee for the electricity meter plus 18% GST.</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span>How does this platform calculate the true cost per unit (₹/kWh)?</span>
+                  <span class="faq-badge">യൂണിറ്റ് നിരക്ക്</span>
+                </summary>
+                <div class="faq-answer">
+                  <p>Conventional bills only show cost divided by grid-imported units. For solar homes, this skews reality because self-consumed solar energy powers your appliances without ever touching the bill. This platform computes your <em>True Unit Cost</em> by dividing your total bill spend by your whole-home energy demand (Grid Imports + Self-Consumed Solar), giving you the actual cost per unit of running your household.</p>
+                </div>
+              </details>
+
+              <details class="faq-item">
+                <summary class="faq-question">
+                  <span>Is my KSEB data, consumer number, and password secure?</span>
+                  <span class="faq-badge">സുരക്ഷ &amp; പ്രൈവസി</span>
+                </summary>
+                <div class="faq-answer">
+                  <p>Yes. This application was built with a strict privacy-first architecture:</p>
+                  <ul>
+                    <li>Sync requests connect directly and securely via HTTPS with the official KSEB Web Self-Service portal.</li>
+                    <li>Any stored credentials are encrypted at rest using Fernet AES-128-CBC cryptographic keys.</li>
+                    <li>The codebase is fully open-source for public verification.</li>
+                    <li>You can download a complete JSON export of your data or permanently erase your account and all parsed bills with a single click.</li>
+                  </ul>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden compatibility anchor for older references -->
+        <footer id="seo-login-section" class="auth-faq" hidden></footer>
+
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         2. AUTHENTICATED DASHBOARD
+         =================================================================== -->
+    <div id="appPanel" class="app-layout" hidden>
+      
+      <!-- Demo Mode Banner (Simulated Sample Data Preview) -->
+      <div id="demoModeBanner" class="demo-mode-strip" hidden>
+        <div class="demo-mode-msg">
+          <span class="demo-mode-pill">SIMULATED DATA PREVIEW</span>
+          <span>Viewing live dashboard preview with sample data. No real credentials or data stored.</span>
+        </div>
+        <button id="exitDemoBtn" type="button" class="btn btn-sm btn-outline-warning">
+          Exit Demo &amp; Sign In
+        </button>
+      </div>
+
+      <!-- Top Navigation Bar -->
+      <header class="navbar">
+        <div class="navbar-inner">
+          <!-- Left: Brand Logo & Title -->
+          <div class="navbar-brand">
+            <div class="nav-logo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <div class="nav-title-group">
+              <span class="nav-app-name">KSEB Energy</span>
+              <span id="identityConsumerBadge" class="nav-account-tag">Loading...</span>
+            </div>
+          </div>
+
+          <!-- Center: Primary Navigation Tabs (Desktop) -->
+          <nav class="nav-tabs desktop-nav-tabs" aria-label="Dashboard sections" role="tablist">
+            <button
+              class="nav-tab is-active"
+              id="tab-overview"
+              type="button"
+              role="tab"
+              aria-controls="panel-overview"
+              aria-selected="true"
+              data-tab="overview"
+            >
+              Overview
+            </button>
+            <button
+              class="nav-tab"
+              id="tab-energy"
+              type="button"
+              role="tab"
+              aria-controls="panel-energy"
+              aria-selected="false"
+              data-tab="energy"
+            >
+              Solar & Mix
+            </button>
+            <button
+              class="nav-tab"
+              id="tab-ledger"
+              type="button"
+              role="tab"
+              aria-controls="panel-ledger"
+              aria-selected="false"
+              data-tab="ledger"
+            >
+              Bill History
+            </button>
+          </nav>
+
+          <!-- Right: Action Buttons (including direct Top Bar Sign Out) -->
+          <div class="nav-actions">
+            <!-- Sync / Refresh -->
+            <button id="syncButton" class="btn btn-secondary btn-nav-action" type="button" title="Fetch latest bills from KSEB" aria-label="Refresh bills">
+              <svg class="sync-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <span class="btn-text-desktop">Refresh</span>
+            </button>
+
+            <!-- Upload PDF -->
+            <button id="uploadModalTrigger" class="btn btn-secondary btn-nav-action" type="button" title="Upload bill PDFs" aria-label="Upload PDF">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span class="btn-text-desktop">Upload PDF</span>
+            </button>
+
+            <!-- Notifications Center -->
+            <button id="notificationsToggleBtn" class="btn-icon" type="button" title="Notifications" aria-label="Notifications">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span id="notifBadgeDot" class="badge-dot" hidden></span>
+            </button>
+
+            <!-- Settings / Account -->
+            <button id="settingsModalTrigger" class="btn-icon" type="button" title="Account settings" aria-label="Settings">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+            </button>
+
+            <!-- Direct Sign Out Button in Top Bar -->
+            <button id="topNavLogoutButton" class="btn btn-secondary btn-nav-action btn-nav-logout" type="button" title="Sign out" aria-label="Sign out">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span class="btn-text-desktop">Sign Out</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Navigation Tabs Bar -->
+        <div class="mobile-nav-bar">
+          <nav class="nav-tabs mobile-nav-tabs" aria-label="Mobile sections" role="tablist">
+            <button class="nav-tab is-active" type="button" data-tab="overview">Overview</button>
+            <button class="nav-tab" type="button" data-tab="energy">Solar & Mix</button>
+            <button class="nav-tab" type="button" data-tab="ledger">Bill History</button>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main Container Content -->
+      <main class="content-container">
+        
+        <!-- Header Controls Row: Title + Timeframe Selector -->
+        <div class="page-controls-bar">
+          <div class="page-title-group">
+            <h2 id="pageSectionTitle" class="page-title">Electricity Overview</h2>
+            <span id="rangeSummary" class="page-subtitle">Showing last 3 months</span>
+          </div>
+
+          <div class="timeframe-selector" role="group" aria-label="Timeframe presets">
+            <button class="timeframe-btn is-active" type="button" data-range-preset="3m">3M</button>
+            <button class="timeframe-btn" type="button" data-range-preset="6m">6M</button>
+            <button class="timeframe-btn" type="button" data-range-preset="1y">1Y</button>
+            <button class="timeframe-btn" type="button" data-range-preset="all">All</button>
+            <button class="timeframe-btn" type="button" data-range-preset="custom" id="customRangeToggle">Custom</button>
+          </div>
+        </div>
+
+        <!-- Custom Date Range Bar (Expanded on demand) -->
+        <div id="customRangeRow" class="custom-range-card card" hidden>
+          <div class="custom-range-fields">
+            <div class="date-input-wrap">
+              <label for="rangeFrom">From</label>
+              <input id="rangeFrom" type="date" class="form-control form-control-sm" />
+            </div>
+            <div class="date-input-wrap">
+              <label for="rangeTo">To</label>
+              <input id="rangeTo" type="date" class="form-control form-control-sm" />
+            </div>
+          </div>
+          <div class="custom-range-btns">
+            <button id="cancelCustomRange" class="btn btn-secondary btn-sm" type="button">Cancel</button>
+            <button id="applyCustomRange" class="btn btn-primary btn-sm" type="button">Apply Range</button>
+          </div>
+        </div>
+
+        <div id="chartStatusBanner" class="alert-banner" hidden aria-live="polite"></div>
+
+        <!-- ===============================================================
+             TAB 1: OVERVIEW PANEL
+             =============================================================== -->
+        <section
+          class="tab-content"
+          id="panel-overview"
+          role="tabpanel"
+          aria-labelledby="tab-overview"
+          data-panel="overview"
+        >
+          <!-- 4 Core Metric Cards (Tesla / Apple Health Style) -->
+          <div class="metrics-grid">
+            
+            <!-- 1. Total Spend -->
+            <div class="card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Total Spend</span>
+                <span class="metric-tag tag-blue">Billed</span>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-value" id="totalSpend">-</span>
+              </div>
+              <div class="metric-bottom">
+                <span id="totalSpendMeta" class="metric-meta">Across selected range</span>
+              </div>
+            </div>
+
+            <!-- 2. Average Bill -->
+            <div class="card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Average Monthly Bill</span>
+                <span class="metric-tag tag-cyan">Cycle Avg</span>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-value" id="avgBill">-</span>
+              </div>
+              <div class="metric-bottom">
+                <span id="avgBillMeta" class="metric-meta">Average per billing cycle</span>
+              </div>
+            </div>
+
+            <!-- 3. Home Electricity Demand -->
+            <div class="card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Home Energy Load</span>
+                <span class="metric-tag tag-amber">Demand</span>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-value" id="totalDemand">-</span>
+              </div>
+              <div class="metric-bottom">
+                <span id="totalDemandMeta" class="metric-meta">Grid import + solar used</span>
+              </div>
+            </div>
+
+            <!-- 4. Solar Coverage / Offset -->
+            <div class="card metric-card">
+              <div class="metric-top">
+                <span class="metric-label">Solar Contribution</span>
+                <span class="metric-tag tag-green">Solar</span>
+              </div>
+              <div class="metric-value-row">
+                <span class="metric-value text-green" id="solarCoverage">-</span>
+              </div>
+              <div class="metric-bottom">
+                <span id="solarCoverageMeta" class="metric-meta">Share of load met by solar</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Main Chart Card: Spend & Demand Trend -->
+          <div class="card chart-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title">Monthly Spend & Energy Demand</h3>
+                <p class="card-subtitle">Bar chart shows total bill amount (₹). Lines show total home load and solar generation (kWh).</p>
+              </div>
+              <div class="badge" id="trendBadge">
+                <span>Month-on-month trend</span>
+              </div>
+            </div>
+            <div id="trendChart" class="chart-container"></div>
+          </div>
+
+          <!-- Secondary Row: Energy Mix + Highlights -->
+          <div class="dual-grid">
+            
+            <!-- Left: Energy Mix Chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Energy Mix (Grid Import vs Solar)</h3>
+                  <p class="card-subtitle">Electricity drawn from KSEB grid compared to on-site solar generation.</p>
+                </div>
+              </div>
+              <div id="importVsSolarChart" class="chart-container chart-container-sm"></div>
+            </div>
+
+            <!-- Right: Automated Highlights -->
+            <div class="card insights-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Energy Highlights</h3>
+                  <p class="card-subtitle">Key patterns calculated from your bill archive.</p>
+                </div>
+              </div>
+              <div id="insightList" class="insights-list"></div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             TAB 2: SOLAR & MIX PANEL
+             =============================================================== -->
+        <section
+          class="tab-content"
+          id="panel-energy"
+          role="tabpanel"
+          aria-labelledby="tab-energy"
+          data-panel="energy"
+          hidden
+        >
+          <!-- Mini Stats Row -->
+          <div class="mini-stats-grid">
+            <div class="card mini-card">
+              <span class="mini-label">Peak Solar Month</span>
+              <div class="mini-value" id="overviewSolarPeakValue">-</div>
+              <span class="mini-caption" id="overviewSolarPeakMeta">Highest recorded solar generation.</span>
+            </div>
+
+            <div class="card mini-card">
+              <span class="mini-label">Solar Self-Use Share</span>
+              <div class="mini-value text-green" id="overviewSolarUseValue">-</div>
+              <span class="mini-caption" id="overviewSolarUseMeta">Share of generated solar used at home.</span>
+            </div>
+
+            <div class="card mini-card">
+              <span class="mini-label">Latest Solar Month</span>
+              <div class="mini-value" id="overviewSolarLatestValue">-</div>
+              <span class="mini-caption" id="overviewSolarLatestMeta">Most recent cycle generation.</span>
+            </div>
+          </div>
+
+          <!-- Flow Chart + Unit Cost Chart -->
+          <div class="dual-grid">
+            <div class="card chart-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Energy Flow Breakdown</h3>
+                  <p class="card-subtitle">Stacked view: Self-used solar, KSEB grid import, and solar sent to the grid.</p>
+                </div>
+              </div>
+              <div id="flowChart" class="chart-container chart-container-sm"></div>
+            </div>
+
+            <div class="card chart-card">
+              <div class="card-header">
+                <div class="card-title-group">
+                  <h3 class="card-title">Solar Coverage & Effective Unit Rate</h3>
+                  <p class="card-subtitle">Percentage of home load met by solar versus your real cost per kWh (₹).</p>
+                </div>
+              </div>
+              <div id="performanceChart" class="chart-container chart-container-sm"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===============================================================
+             TAB 3: BILL HISTORY / LEDGER PANEL
+             =============================================================== -->
+        <section
+          class="tab-content"
+          id="panel-ledger"
+          role="tabpanel"
+          aria-labelledby="tab-ledger"
+          data-panel="ledger"
+          hidden
+        >
+          <div class="card ledger-card">
+            <div class="ledger-header">
+              <div class="card-title-group">
+                <h3 class="card-title">Historical Bill Ledger</h3>
+                <p class="card-subtitle">Itemized table of all parsed KSEB bills with energy readings and costs.</p>
+              </div>
+              <div class="ledger-actions">
+                <input id="ledgerSearchInput" type="text" placeholder="Search by month or year..." class="form-control form-control-sm ledger-search" />
+                <span class="badge" id="ledgerBadge">0 bills</span>
+              </div>
+            </div>
+
+            <!-- Mobile Card Stack View -->
+            <div id="ledgerCards" class="mobile-ledger-list"></div>
+
+            <!-- Desktop Table View -->
+            <div class="table-wrap desktop-table-view">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Billing Month</th>
+                    <th>Bill Amount</th>
+                    <th>Grid Import</th>
+                    <th>Solar Export</th>
+                    <th>Solar Gen</th>
+                    <th>Home Demand</th>
+                    <th>Cost / Unit</th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ===============================================================
+           MODALS & DIALOGS
+           =============================================================== -->
+
+      <!-- 1. PDF Upload Modal Sheet -->
+      <div id="uploadSheetModal" class="modal-overlay" hidden>
+        <div class="modal-dialog card">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <h3 class="modal-title">Upload KSEB Bill PDFs</h3>
+              <p class="modal-subtitle">Add official KSEB e-bill PDFs for automated parsing.</p>
+            </div>
+            <button id="closeUploadSheetBtn" class="modal-close-btn" type="button" aria-label="Close">✕</button>
+          </div>
+
+          <form id="uploadForm" class="upload-form">
+            <div id="dropZone" class="upload-dropzone">
+              <input id="uploadInput" type="file" accept="application/pdf,.pdf" multiple required class="dropzone-input" />
+              <div class="dropzone-body">
+                <div class="dropzone-icon">📄</div>
+                <strong class="dropzone-title">Click to choose PDFs or drag files here</strong>
+                <span class="dropzone-hint">Upload one or multiple PDF bills downloaded from KSEB portal</span>
+              </div>
+            </div>
+
+            <!-- Selected Files List -->
+            <div id="selectedFilesList" class="selected-files" hidden></div>
+
+            <div class="modal-footer">
+              <button id="cancelUploadBtn" class="btn btn-secondary" type="button">Cancel</button>
+              <button class="btn btn-primary" type="submit">Upload & Parse</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2. Notifications Center Sheet -->
+      <div id="notificationsSheetModal" class="modal-overlay" hidden>
+        <div class="modal-dialog card modal-dialog-sm">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <h3 class="modal-title">Notifications</h3>
+              <p class="modal-subtitle">Recent bill sync alerts and account updates.</p>
+            </div>
+            <button id="closeNotificationsButton" class="modal-close-btn" type="button" aria-label="Close">✕</button>
+          </div>
+          <div id="notificationList" class="notifications-list"></div>
+        </div>
+      </div>
+
+      <!-- 3. Account Settings Modal Sheet -->
+      <div id="settingsModal" class="modal-overlay" hidden>
+        <div class="modal-dialog card">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <h3 class="modal-title">Account & Settings</h3>
+              <p class="modal-subtitle">Manage session, notifications, and export data.</p>
+            </div>
+            <button id="closeSettingsBtn" class="modal-close-btn" type="button" aria-label="Close">✕</button>
+          </div>
+
+          <div class="settings-content">
+            <!-- Account Info Box -->
+            <div class="settings-info-box">
+              <div class="info-row">
+                <span class="info-label">Consumer Number</span>
+                <strong id="settingsConsumerNumber" class="info-value">-</strong>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Registered Mobile</span>
+                <strong id="settingsMobileNumber" class="info-value">-</strong>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="status-pill">Active Session</span>
+              </div>
+            </div>
+
+            <!-- Action Rows -->
+            <div class="settings-actions">
+              <button id="pushButton" class="settings-row-btn" type="button">
+                <div class="row-icon">🔔</div>
+                <div class="row-text">
+                  <strong>Enable Push Notifications</strong>
+                  <span>Get alerts when a new KSEB bill is issued</span>
+                </div>
+                <span class="row-arrow">→</span>
+              </button>
+
+              <button id="exportButton" class="settings-row-btn" type="button">
+                <div class="row-icon">📥</div>
+                <div class="row-text">
+                  <strong>Export Energy Data (JSON)</strong>
+                  <span>Download a complete backup of all bill records</span>
+                </div>
+                <span class="row-arrow">→</span>
+              </button>
+
+              <button id="settingsLogoutButton" class="settings-row-btn" type="button">
+                <div class="row-icon">🚪</div>
+                <div class="row-text">
+                  <strong>Sign Out</strong>
+                  <span>Close your session on this browser</span>
+                </div>
+                <span class="row-arrow">→</span>
+              </button>
+
+              <button id="deleteButton" class="settings-row-btn row-danger" type="button">
+                <div class="row-icon">🗑</div>
+                <div class="row-text">
+                  <strong>Delete Account & Data</strong>
+                  <span>Permanently remove all stored bills from server</span>
+                </div>
+                <span class="row-arrow">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>
