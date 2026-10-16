@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>KSEB Solar Net-Metering Estimator &amp; Banked Units | Kerala</title>
+    <meta
+      name="description"
+      content="Estimate KSEB rooftop-solar savings under net metering: self-consumed solar, units exported to the grid, net billed units and banked surplus for Kerala households. Understand banked units and the annual September APPC settlement."
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#090c13" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="canonical" href="https://kseb.akjohn.dev/kseb-solar-net-metering" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KSEB Energy Analytics" />
+    <meta property="og:title" content="KSEB Solar Net-Metering Estimator" />
+    <meta property="og:description" content="Model self-consumption, grid export and banked units for a Kerala rooftop-solar home under KSEB net metering." />
+    <meta property="og:url" content="https://kseb.akjohn.dev/kseb-solar-net-metering" />
+    <meta property="og:image" content="https://kseb.akjohn.dev/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/kseb-tools.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "KSEB Solar Net-Metering Estimator",
+        "url": "https://kseb.akjohn.dev/kseb-solar-net-metering",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+        "description": "Estimator for Kerala rooftop-solar net metering: self-consumption, grid export and banked units under KSEB."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://kseb.akjohn.dev/" },
+          { "@type": "ListItem", "position": 2, "name": "KSEB Solar Net-Metering Estimator", "item": "https://kseb.akjohn.dev/kseb-solar-net-metering" }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What are banked units in KSEB solar net metering?",
+            "acceptedAnswer": { "@type": "Answer", "text": "When your solar panels export more units than your home imports in a bi-monthly cycle, the surplus is recorded as banked units in your KSEB ledger and carried forward to offset later cycles." }
+          },
+          {
+            "@type": "Question",
+            "name": "What happens to banked units at the September settlement?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Banked units are settled annually at the end of the settlement year (September 30). Unadjusted banked units are compensated by KSEB at the KERC-notified Average Power Purchase Cost (APPC) rate, which changes over time." }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-brand" href="/">
+        <span class="bolt" aria-hidden="true">⚡</span>
+        <span>KSEB Energy Analytics</span>
+      </a>
+      <nav class="site-nav" aria-label="Tools">
+        <a href="/kseb-bill-calculator">Bill Calculator</a>
+        <a href="/kseb-solar-net-metering" aria-current="page">Solar Estimator</a>
+        <a href="/kseb-tariff-slabs">Tariff Guide</a>
+        <a href="/">Open App</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <div class="hero">
+        <h1>KSEB Solar Net-Metering Estimator</h1>
+        <p>
+          Model how rooftop solar changes your Kerala electricity bill under KSEB net metering.
+          Enter your generation and home demand to see self-consumed solar, units exported to the grid,
+          net billed units and any surplus <strong>banked units</strong> carried to the next cycle.
+        </p>
+        <p class="updated">Methodology last reviewed: <time datetime="2026-10-15">October 2026</time>. Illustrative estimates only.</p>
+      </div>
+
+      <noscript>
+        <div class="noscript-box">
+          JavaScript is off, so the live estimator is disabled. The default example (480 kWh generated,
+          420 kWh demand) shows about <strong>₹2,764</strong> saved, 189 kWh self-consumed, 291 kWh exported
+          and +60 kWh banked.
+        </div>
+      </noscript>
+
+      <section class="card" aria-labelledby="est-title">
+        <h2 id="est-title">Estimate your solar savings</h2>
+        <p class="sub">Enter values for one bi-monthly (2-month) billing cycle.</p>
+
+        <div class="grid-2">
+          <div>
+            <label for="solarGenInput">Bi-monthly solar generation (kWh)</label>
+            <input type="number" id="solarGenInput" value="480" min="0" max="5000" step="10" />
+          </div>
+          <div>
+            <label for="solarDemandInput">Total bi-monthly home demand (kWh)</label>
+            <input type="number" id="solarDemandInput" value="420" min="0" max="5000" step="10" />
+          </div>
+        </div>
+
+        <div class="kpis" aria-live="polite">
+          <div class="kpi highlight">
+            <span class="k-label">Estimated savings</span>
+            <span class="k-value" id="solarSavingsVal">₹2,764</span>
+            <span class="k-sub" id="solarCoverageSub">100% solar coverage</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label">Self-consumed solar</span>
+            <span class="k-value" id="solarSelfConsumedVal">189 kWh</span>
+            <span class="k-sub">Direct daytime use</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label">Exported to grid</span>
+            <span class="k-value" id="solarExportVal">291 kWh</span>
+            <span class="k-sub">Via bi-directional meter</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label" id="solarNetStatusLabel">Banked Surplus Units</span>
+            <span class="k-value" id="solarNetUnitsVal">+60 kWh</span>
+            <span class="k-sub" id="solarNetUnitsSub">Carried forward to next cycle</span>
+          </div>
+        </div>
+
+        <p class="disclaimer">
+          * Illustrative model. Real self-consumption depends on appliance timings and battery; the export
+          value assumes no battery storage.
+        </p>
+      </section>
+
+      <section class="prose" aria-labelledby="how-title">
+        <h2 id="how-title">How KSEB solar net metering works</h2>
+        <ul>
+          <li><strong>Bi-directional meter:</strong> records both energy imported from KSEB and excess solar exported back to the 230V/415V grid.</li>
+          <li><strong>Net billing:</strong> if imports exceed exports, you pay energy charges only on the net imported units, at the LT-1A slabs.</li>
+          <li><strong>Banked units:</strong> if exports exceed imports, the surplus is banked in your KSEB ledger and rolls over to offset later cycles.</li>
+          <li><strong>Annual September settlement:</strong> at the end of the settlement year (September 30), any remaining banked units are settled by KSEB at the KERC-notified Average Power Purchase Cost (APPC).</li>
+        </ul>
+        <p>
+          The APPC settlement rate is revised periodically and reported differently across sources. When you
+          check your numbers, use the rate from the latest KERC order rather than a blog figure.
+        </p>
+
+        <h3>Why your bill can still be non-zero with solar</h3>
+        <p>
+          Even with surplus solar, a KSEB bill keeps a bi-monthly fixed charge and meter rent, and any grid
+          units imported during the night or on cloudy days are billed at slab rates. This tool separates
+          self-consumed solar from grid import so you can see the true cost of running the home.
+        </p>
+      </section>
+
+      <section class="prose" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        <details class="faq" open>
+          <summary>What are banked units in KSEB solar net metering?</summary>
+          <p>Surplus solar exported beyond your import in a cycle is stored as banked units and carried forward to offset future bills.</p>
+        </details>
+        <details class="faq">
+          <summary>What happens at the September settlement?</summary>
+          <p>Unadjusted banked units are settled at the KERC-notified APPC rate each September 30; the rate changes with each tariff order.</p>
+        </details>
+        <details class="faq">
+          <summary>Is this an official KSEB tool?</summary>
+          <p>No — it is an independent, free estimator, not affiliated with KSEB.</p>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>Track your real solar and bill data</h2>
+        <p class="sub">Fetch your actual KSEB bills to see self-consumption, export and true ₹/kWh over time.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="/">Open KSEB Energy Analytics</a>
+          <a class="btn" href="/kseb-bill-calculator">Bill calculator</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="/">Home</a> · <a href="/kseb-bill-calculator">Bill Calculator</a> ·
+        <a href="/kseb-solar-net-metering">Solar Estimator</a> · <a href="/kseb-tariff-slabs">Tariff Guide</a>
+      </p>
+      <p>Independent tool, not affiliated with, endorsed by, or operated by KSEB. Estimates only.</p>
+    </footer>
+
+    <script src="/kseb-tariff.js" defer></script>
+    <script src="/kseb-tools.js" defer></script>
+  </body>
+</html>

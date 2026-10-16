@@ -1,0 +1,13 @@
+alembic
+boto3
+cryptography
+fastapi
+httpx
+pdfminer.six
+psycopg[binary]
+pywebpush
+pytest
+python-multipart
+requests
+sqlalchemy
+uvicorn[standard]
