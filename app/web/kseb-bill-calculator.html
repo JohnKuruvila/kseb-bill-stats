@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>KSEB Bill Calculator (Bi-Monthly LT-1A Slabs) | Kerala 2026</title>
+    <meta
+      name="description"
+      content="Free KSEB bi-monthly bill calculator for Kerala domestic (LT-1A) consumers. Enter your units to see telescopic slab charges, fixed charge, 10% electricity duty, fuel surcharge and meter rent — with an itemized breakdown."
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="theme-color" content="#090c13" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="canonical" href="https://kseb.akjohn.dev/kseb-bill-calculator" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KSEB Energy Analytics" />
+    <meta property="og:title" content="KSEB Bill Calculator (Bi-Monthly LT-1A Slabs)" />
+    <meta property="og:description" content="Estimate your Kerala domestic KSEB bill from units consumed: telescopic slabs, fixed charge, duty, fuel surcharge and meter rent." />
+    <meta property="og:url" content="https://kseb.akjohn.dev/kseb-bill-calculator" />
+    <meta property="og:image" content="https://kseb.akjohn.dev/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/kseb-tools.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "KSEB Bill Calculator",
+        "url": "https://kseb.akjohn.dev/kseb-bill-calculator",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript for live recalculation",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+        "description": "Bi-monthly KSEB LT-1A domestic electricity bill calculator for Kerala, with telescopic slab breakdown."
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://kseb.akjohn.dev/" },
+          { "@type": "ListItem", "position": 2, "name": "KSEB Bill Calculator", "item": "https://kseb.akjohn.dev/kseb-bill-calculator" }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "When does the KSEB tariff become non-telescopic?",
+            "acceptedAnswer": { "@type": "Answer", "text": "For domestic LT-1A consumers, telescopic slab rates apply up to 500 units per bi-monthly cycle. Above 500 units, all units are billed at a single flat rate, which makes the bill jump sharply." }
+          },
+          {
+            "@type": "Question",
+            "name": "What charges are added on top of KSEB energy charges?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Besides the slab energy charge, a KSEB domestic bill includes a bi-monthly fixed charge (based on phase), 10% statutory electricity duty, a notified fuel surcharge per unit, and meter rent plus GST." }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-brand" href="/">
+        <span class="bolt" aria-hidden="true">⚡</span>
+        <span>KSEB Energy Analytics</span>
+      </a>
+      <nav class="site-nav" aria-label="Tools">
+        <a href="/kseb-bill-calculator" aria-current="page">Bill Calculator</a>
+        <a href="/kseb-solar-net-metering">Solar Estimator</a>
+        <a href="/kseb-tariff-slabs">Tariff Guide</a>
+        <a href="/">Open App</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <div class="hero">
+        <h1>KSEB Bill Calculator (Bi-Monthly LT-1A)</h1>
+        <p>
+          Estimate your Kerala domestic electricity bill from the units shown on your bi-directional meter.
+          The calculator applies the KERC LT-1A telescopic slabs, fixed charge, 10% electricity duty,
+          notified fuel surcharge and meter rent, and shows an itemised breakdown.
+        </p>
+        <p class="updated">Tariff data last reviewed: <time datetime="2026-10-15">October 2026</time>. Always verify against the latest KERC tariff order.</p>
+      </div>
+
+      <noscript>
+        <div class="noscript-box">
+          JavaScript is off, so the live recalculation is disabled. The figures below show the default
+          example (240 units, single phase): an estimated bill of <strong>₹1,362</strong>
+          (energy ₹1,040 + fixed ₹180 + duty, fuel &amp; rent ₹142).
+        </div>
+      </noscript>
+
+      <section class="card" aria-labelledby="calc-title">
+        <h2 id="calc-title">Calculate your bill</h2>
+        <p class="sub">Enter units consumed in the bi-monthly (2-month) cycle.</p>
+
+        <div class="grid-2">
+          <div>
+            <label for="calcUnitsInput">Bi-monthly units consumed (kWh)</label>
+            <input type="number" id="calcUnitsInput" value="240" min="0" max="5000" step="1" />
+            <input type="range" id="calcUnitsSlider" min="0" max="1000" step="10" value="240" aria-label="Units slider" />
+          </div>
+          <div>
+            <label>Connection phase</label>
+            <div class="toggle" role="group" aria-label="Connection phase">
+              <button type="button" id="phaseSingleBtn" class="is-active">Single Phase (1φ)</button>
+              <button type="button" id="phaseThreeBtn">Three Phase (3φ)</button>
+            </div>
+            <p class="hint">Domestic single-phase supply is the common case for homes.</p>
+          </div>
+        </div>
+
+        <div class="kpis" aria-live="polite">
+          <div class="kpi highlight">
+            <span class="k-label">Estimated bill</span>
+            <span class="k-value" id="calcTotalBill">₹1,362</span>
+            <span class="k-sub" id="calcEffectiveRate">₹5.67 / unit effective</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label">Energy charge</span>
+            <span class="k-value" id="calcEnergyCharge">₹1,040</span>
+            <span class="k-sub" id="calcSlabTypeBadge">Telescopic Slabs</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label">Fixed charge</span>
+            <span class="k-value" id="calcFixedCharge">₹180</span>
+            <span class="k-sub" id="calcPhaseSub">Single Phase (1φ)</span>
+          </div>
+          <div class="kpi">
+            <span class="k-label">Duty, fuel &amp; rent</span>
+            <span class="k-value" id="calcDutySurcharge">₹142</span>
+            <span class="k-sub">10% duty + fuel + rent</span>
+          </div>
+        </div>
+
+        <div id="calcSlabAlert" class="alert info">
+          <span id="calcSlabAlertText">Telescopic tariff: up to 500 units bi-monthly, lower slabs are billed at discounted progressive rates.</span>
+        </div>
+
+        <h3>Itemized slab breakdown (240 units example)</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Slab range</th><th>Units billed</th><th>Rate (₹/unit)</th><th class="text-right">Subtotal</th></tr>
+            </thead>
+            <tbody id="calcSlabTableBody">
+              <tr><td>0 - 80 Units</td><td>80 units</td><td>₹3.50</td><td class="text-right">₹280.00</td></tr>
+              <tr><td>81 - 160 Units</td><td>80 units</td><td>₹4.20</td><td class="text-right">₹336.00</td></tr>
+              <tr><td>161 - 200 Units</td><td>40 units</td><td>₹4.80</td><td class="text-right">₹192.00</td></tr>
+              <tr><td>201 - 240 Units</td><td>40 units</td><td>₹5.80</td><td class="text-right">₹232.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="disclaimer">
+          * Estimate only. Actual KSEB bills may vary with meter reading days, connected-load fixed charges,
+          fuel-surcharge revisions and any arrears. Calculations are not an official KSEB bill.
+        </p>
+      </section>
+
+      <section class="prose" aria-labelledby="slabs-title">
+        <h2 id="slabs-title">KSEB LT-1A domestic slab rates</h2>
+        <p>
+          Kerala domestic consumers are billed <strong>bi-monthly</strong>. For consumption up to
+          500 units in a cycle, billing is <strong>telescopic</strong>: each slab is charged at its own rate.
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Slab (units / 2 months)</th><th>Rate (₹/unit)</th></tr></thead>
+            <tbody>
+              <tr><td>0 – 80</td><td>3.50</td></tr>
+              <tr><td>81 – 160</td><td>4.20</td></tr>
+              <tr><td>161 – 200</td><td>4.80</td></tr>
+              <tr><td>201 – 280</td><td>5.80</td></tr>
+              <tr><td>281 – 300</td><td>6.60</td></tr>
+              <tr><td>301 – 400</td><td>7.30</td></tr>
+              <tr><td>401 – 500</td><td>8.40</td></tr>
+              <tr><td>Above 500</td><td>Flat 6.60 – 9.50 (non-telescopic)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Worked examples</h3>
+        <ul>
+          <li><strong>160 units</strong> → energy ₹616, fixed ₹100, total ≈ <strong>₹808</strong>.</li>
+          <li><strong>240 units</strong> → energy ₹1,040, fixed ₹180, total ≈ <strong>₹1,362</strong>.</li>
+          <li><strong>500 units</strong> → energy ₹2,974, fixed ₹260, total ≈ <strong>₹3,595</strong>.</li>
+          <li><strong>600 units</strong> (non-telescopic) → energy ₹3,960, fixed ₹280, total ≈ <strong>₹4,710</strong>.</li>
+        </ul>
+        <p>
+          Notice how crossing 500 units removes the slab benefit and lifts the effective rate sharply — the
+          single biggest reason two similar homes can get very different bills.
+        </p>
+      </section>
+
+      <section class="prose" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+
+        <details class="faq" open>
+          <summary>How is the KSEB domestic bill calculated using telescopic slabs?</summary>
+          <p>
+            Units are billed progressively: the first 80 at ₹3.50, the next 80 at ₹4.20, and so on up to 500
+            units. If the cycle crosses 500 units, the whole bill switches to a single flat rate, so the
+            total rises much faster than the units consumed.
+          </p>
+        </details>
+
+        <details class="faq">
+          <summary>What charges are added on top of the energy charge?</summary>
+          <p>
+            A bi-monthly fixed charge (depending on single- vs three-phase supply), 10% statutory electricity
+            duty, a KERC-notified fuel surcharge per unit, and meter rent with GST.
+          </p>
+        </details>
+
+        <details class="faq">
+          <summary>Is this the official KSEB bill calculator?</summary>
+          <p>
+            No. It is an independent, free estimator and is not affiliated with KSEB. Always treat the bill
+            served by your electrical section as authoritative.
+          </p>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>Want your real bills, not an estimate?</h2>
+        <p class="sub">Connect your KSEB account to fetch and analyse your actual bills, solar export and true cost per unit.</p>
+        <div class="cta-row">
+          <a class="btn primary" href="/">Open KSEB Energy Analytics</a>
+          <a class="btn" href="/kseb-solar-net-metering">Try the solar estimator</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        <a href="/">Home</a> · <a href="/kseb-bill-calculator">Bill Calculator</a> ·
+        <a href="/kseb-solar-net-metering">Solar Estimator</a> · <a href="/kseb-tariff-slabs">Tariff Guide</a>
+      </p>
+      <p>Independent tool, not affiliated with, endorsed by, or operated by KSEB. Estimates only.</p>
+    </footer>
+
+    <script src="/kseb-tariff.js" defer></script>
+    <script src="/kseb-tools.js" defer></script>
+  </body>
+</html>
